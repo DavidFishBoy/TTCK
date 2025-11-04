@@ -4,8 +4,15 @@ data:
   coins:
     - ethereum
     - bitcoin
-    - litecoin  # Added as per coin_map
-    # Add other coins as needed
+    - litecoin
+    - binancecoin
+    - cardano
+    - solana
+    - pancakeswap
+    - axieinfinity
+    - thesandbox
+    # Note: litentry, uniswap, aave don't have USDT pairs (only ETH pairs)
+    # Note: usdcoin, binanceusd are stablecoins (not recommended for prediction)
   days: 1000
   validation_split: 0.10
   test_split: 0.10

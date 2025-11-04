@@ -177,8 +177,11 @@ class DataCollector:
             Dict[str, Dict[str, pd.DataFrame]]: Data dictionary with binance data for each coin.
         """
         coins_to_process = coins if coins else self.coins
-        self.logger.info("Starting collection of all data for specified coins.")
+        self.logger.info(f"Starting collection of data for {len(coins_to_process)} coins: {', '.join(coins_to_process)}")
         all_data = {}
+        
+        successful_coins = []
+        failed_coins = []
 
         for coin in coins_to_process:
             try:
@@ -188,15 +191,31 @@ class DataCollector:
                 binance_data = await self.fetch_binance_data(base_asset, quote_asset)
                 binance_data = self.process_raw_data(binance_data)
 
-                all_data[coin] = {
-                    'binance': binance_data
-                }
-                self.logger.info(f"Successfully collected data for {coin}.")
+                if not binance_data.empty:
+                    all_data[coin] = {
+                        'binance': binance_data
+                    }
+                    successful_coins.append(coin)
+                    self.logger.info(f"✅ Successfully collected {len(binance_data)} records for {coin}")
+                else:
+                    failed_coins.append(coin)
+                    self.logger.warning(f"❌ No data collected for {coin}")
 
             except Exception as e:
-                self.logger.error(f"Error collecting data for {coin}: {str(e)}")
+                failed_coins.append(coin)
+                self.logger.error(f"❌ Error collecting data for {coin}: {str(e)}")
 
-        self.logger.info("Completed collection of all data.")
+        # Summary
+        self.logger.info("="*60)
+        self.logger.info(f"Collection Summary:")
+        self.logger.info(f"  ✅ Successful: {len(successful_coins)}/{len(coins_to_process)} coins")
+        self.logger.info(f"  ❌ Failed: {len(failed_coins)}/{len(coins_to_process)} coins")
+        if successful_coins:
+            self.logger.info(f"  Success list: {', '.join(successful_coins)}")
+        if failed_coins:
+            self.logger.warning(f"  Failed list: {', '.join(failed_coins)}")
+        self.logger.info("="*60)
+        
         return all_data
 
     def save_data(self, data: Dict[str, Dict[str, pd.DataFrame]], save_dir: Union[str, Path]) -> None:
@@ -211,18 +230,32 @@ class DataCollector:
         save_dir.mkdir(parents=True, exist_ok=True)
         self.logger.info(f"Saving collected data to directory: {save_dir}")
 
+        saved_count = 0
+        skipped_count = 0
+        
         for coin, sources in data.items():
             for source, df in sources.items():
                 if df.empty or not isinstance(df, pd.DataFrame):
                     self.logger.warning(f"Data for {coin} from {source} is empty or invalid. Skipping save.")
+                    skipped_count += 1
                     continue
                 filename = f"{coin}_{source}_{datetime.now().strftime('%Y%m%d')}.csv"
                 filepath = save_dir / filename
                 try:
                     df.to_csv(filepath)
-                    self.logger.info(f"Saved data for {coin} from {source} to {filename}.")
+                    saved_count += 1
+                    self.logger.info(f"✅ Saved {coin} ({len(df)} records) to {filename}")
                 except Exception as e:
-                    self.logger.error(f"Failed to save data for {coin} from {source}: {str(e)}")
+                    skipped_count += 1
+                    self.logger.error(f"❌ Failed to save data for {coin} from {source}: {str(e)}")
+        
+        # Summary
+        self.logger.info("="*60)
+        self.logger.info(f"Save Summary:")
+        self.logger.info(f"  ✅ Successfully saved: {saved_count} files")
+        self.logger.info(f"  ❌ Skipped: {skipped_count} files")
+        self.logger.info(f"  📁 Location: {save_dir.absolute()}")
+        self.logger.info("="*60)
 
 
 if __name__ == "__main__":

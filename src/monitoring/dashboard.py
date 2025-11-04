@@ -29,7 +29,17 @@ class MonitoringDashboard:
         self.visualizer = CryptoVisualizer()
         self.data_dir = Path(data_dir)
         self.results_dir = Path(results_dir)
-        self.coins = ["bitcoin", "ethereum", "litecoin"]
+        self.coins = [
+            "bitcoin", 
+            "ethereum", 
+            "litecoin",
+            "binancecoin",
+            "cardano",
+            "solana",
+            "pancakeswap",
+            "axieinfinity",
+            "thesandbox"
+        ]
 
     def _setup_logger(self):
         logger = logging.getLogger("MonitoringDashboard")
