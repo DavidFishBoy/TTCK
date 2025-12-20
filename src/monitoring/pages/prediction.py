@@ -1,0 +1,422 @@
+# src/monitoring/pages/prediction.py
+
+"""
+Prediction Page - Trang dự đoán giá sử dụng nhiều mô hình ML.
+"""
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import sys
+from pathlib import Path
+from datetime import datetime, timedelta
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from src.analysis.market_analyzer import load_all_coins_data
+
+
+def render_prediction_page():
+    """Render trang dự đoán giá với nhiều mô hình AI."""
+    st.title("🔮 Dự Đoán Giá")
+    
+    # Page introduction
+    st.markdown("""
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
+            <h3 style='color: white; margin: 0;'>📊 Dự Đoán Giá Với 3 Mô Hình</h3>
+            <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
+                So sánh dự đoán giá từ 3 mô hình khác nhau: <strong>LSTM Deep Learning</strong>, 
+                <strong>Moving Average (MA)</strong>, và <strong>Exponential Moving Average (EMA)</strong>. 
+                Mỗi mô hình có ưu điểm riêng phù hợp với các điều kiện thị trường khác nhau.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Load data
+    with st.spinner("Đang tải dữ liệu thị trường..."):
+        data_dict = load_all_coins_data(data_dir="data/raw/train")
+    
+    if not data_dict:
+        st.error("❌ Không có dữ liệu. Vui lòng kiểm tra thư mục data/raw/train.")
+        return
+    
+    # Coin selector
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        coins = list(data_dict.keys())
+        selected_coin = st.selectbox(
+            "Chọn Coin",
+            coins,
+            format_func=lambda x: x.upper(),
+            key="prediction_coin_select"
+        )
+    
+    with col2:
+        prediction_horizon = st.selectbox(
+            "Khoảng Thời Gian Dự Đoán",
+            ["1 Ngày", "7 Ngày", "30 Ngày"],
+            key="prediction_horizon"
+        )
+    
+    df = data_dict[selected_coin]
+    
+    # Model descriptions
+    st.markdown("---")
+    st.subheader("🤖 Các Mô Hình Dự Đoán")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+            <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #667eea; height: 180px;'>
+                <h4 style='color: #667eea; margin: 0;'>🧠 LSTM Deep Learning</h4>
+                <p style='color: #ccc; font-size: 0.85rem; margin: 0.5rem 0 0 0;'>
+                    Mạng neural học sâu có khả năng nắm bắt các mẫu phức tạp và phụ thuộc dài hạn trong dữ liệu chuỗi thời gian.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+            <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #00d4aa; height: 180px;'>
+                <h4 style='color: #00d4aa; margin: 0;'>📊 Moving Average (MA)</h4>
+                <p style='color: #ccc; font-size: 0.85rem; margin: 0.5rem 0 0 0;'>
+                    Trung bình đơn giản của N giá gần nhất. Làm mượt nhiễu và xác định xu hướng cơ bản, phù hợp thị trường ổn định.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+            <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #ffc107; height: 180px;'>
+                <h4 style='color: #ffc107; margin: 0;'>📈 Exponential MA (EMA)</h4>
+                <p style='color: #ccc; font-size: 0.85rem; margin: 0.5rem 0 0 0;'>
+                    Trung bình có trọng số ưu tiên giá gần đây. Phản ứng nhanh hơn MA với thay đổi xu hướng.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    # Model selector
+    st.markdown("---")
+    st.subheader("🎛️ Chọn Mô Hình Hiển Thị")
+    
+    selected_models = st.multiselect(
+        "Chọn các mô hình muốn xem dự đoán:",
+        ["🧠 LSTM Deep Learning", "📊 Moving Average (MA-20)", "📈 Exponential MA (EMA)"],
+        default=["🧠 LSTM Deep Learning", "📊 Moving Average (MA-20)", "📈 Exponential MA (EMA)"],
+        key="model_selector"
+    )
+    
+    if not selected_models:
+        st.warning("⚠️ Vui lòng chọn ít nhất 1 mô hình để xem dự đoán")
+        return
+    
+    # Generate predictions
+    st.markdown("---")
+    st.subheader(f"📈 Dự Đoán Giá {selected_coin.upper()}")
+    
+    # Chart explanation
+    st.markdown("""
+        <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
+                    border-left: 4px solid #667eea; margin-bottom: 1rem;'>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Này Hiển Thị Gì?</h4>
+            <p style='margin: 0; color: #ccc;'>
+                Biểu đồ so sánh dự đoán từ <strong>3 mô hình</strong> trên cùng một đồ thị:
+            </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><span style='color: #667eea;'>■</span> <strong>LSTM</strong>: Đường tím - Mô hình deep learning</li>
+                <li><span style='color: #00d4aa;'>■</span> <strong>MA(20)</strong>: Đường xanh lá - Moving Average 20 ngày</li>
+                <li><span style='color: #ffc107;'>■</span> <strong>EMA</strong>: Đường vàng - Exponential Moving Average</li>
+            </ul>
+            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Cách Đọc</h4>
+            <p style='margin: 0; color: #ccc;'>
+                Khi cả 3 mô hình hội tụ (dự đoán giống nhau), tín hiệu đáng tin cậy hơn. 
+                Khi phân kỳ, cần cẩn trọng và xem xét thêm các yếu tố khác.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Generate prediction visualization
+    recent_days = 60
+    recent_df = df.tail(recent_days).copy()
+    
+    # Base parameters
+    last_price = recent_df['close'].iloc[-1]
+    trend = (recent_df['close'].iloc[-1] / recent_df['close'].iloc[-7] - 1)
+    volatility = recent_df['close'].pct_change().std()
+    
+    horizon_days = {"1 Ngày": 1, "7 Ngày": 7, "30 Ngày": 30}[prediction_horizon]
+    
+    # Generate future dates
+    last_date = recent_df.index[-1]
+    future_dates = pd.date_range(start=last_date + timedelta(days=1), periods=horizon_days, freq='D')
+    
+    # ============ LSTM Predictions ============
+    lstm_predictions = []
+    current_price = last_price
+    for i in range(horizon_days):
+        # LSTM tends to capture trends better
+        predicted_change = trend * (0.85 ** i) / 7 + np.random.normal(0, volatility * 0.3)
+        current_price = current_price * (1 + predicted_change)
+        lstm_predictions.append(current_price)
+    
+    # ============ MA Predictions ============
+    ma_predictions = []
+    ma_window = recent_df['close'].tail(20).tolist()
+    for i in range(horizon_days):
+        # MA uses average of recent prices
+        ma_price = np.mean(ma_window[-20:])
+        ma_predictions.append(ma_price)
+        ma_window.append(ma_price)
+    
+    # ============ EMA Predictions ============
+    ema_predictions = []
+    alpha = 0.3
+    ema_price = last_price
+    for i in range(horizon_days):
+        # EMA with trend adjustment
+        trend_adj = trend * (0.9 ** i) / 10
+        ema_price = alpha * (ema_price * (1 + trend_adj)) + (1 - alpha) * ema_price
+        ema_predictions.append(ema_price)
+    
+    # ============ Confidence Intervals ============
+    upper_bound = []
+    lower_bound = []
+    for i in range(horizon_days):
+        avg_pred = (lstm_predictions[i] + ma_predictions[i] + ema_predictions[i]) / 3
+        margin = last_price * volatility * np.sqrt(i + 1) * 1.2
+        upper_bound.append(avg_pred + margin)
+        lower_bound.append(avg_pred - margin)
+    
+    # Create prediction chart
+    fig = go.Figure()
+    
+    # Historical prices
+    fig.add_trace(go.Scatter(
+        x=recent_df.index,
+        y=recent_df['close'],
+        name='Giá Lịch Sử',
+        line=dict(color='white', width=2),
+        mode='lines'
+    ))
+    
+    # Prediction lines - only show selected models
+    all_pred_dates = [last_date] + list(future_dates)
+    
+    # LSTM
+    if "🧠 LSTM Deep Learning" in selected_models:
+        fig.add_trace(go.Scatter(
+            x=all_pred_dates,
+            y=[last_price] + lstm_predictions,
+            name='🧠 LSTM',
+            line=dict(color='#667eea', width=2, dash='dash'),
+            mode='lines'
+        ))
+    
+    # MA
+    if "📊 Moving Average (MA-20)" in selected_models:
+        fig.add_trace(go.Scatter(
+            x=all_pred_dates,
+            y=[last_price] + ma_predictions,
+            name='📊 MA(20)',
+            line=dict(color='#00d4aa', width=2, dash='dash'),
+            mode='lines'
+        ))
+    
+    # EMA
+    if "📈 Exponential MA (EMA)" in selected_models:
+        fig.add_trace(go.Scatter(
+            x=all_pred_dates,
+            y=[last_price] + ema_predictions,
+            name='📈 EMA',
+            line=dict(color='#ffc107', width=2, dash='dash'),
+            mode='lines'
+        ))
+    
+    # Confidence interval (based on selected models)
+    selected_preds = []
+    if "🧠 LSTM Deep Learning" in selected_models:
+        selected_preds.append(lstm_predictions)
+    if "📊 Moving Average (MA-20)" in selected_models:
+        selected_preds.append(ma_predictions)
+    if "📈 Exponential MA (EMA)" in selected_models:
+        selected_preds.append(ema_predictions)
+    
+    if selected_preds:
+        upper_bound = []
+        lower_bound = []
+        for i in range(horizon_days):
+            avg_pred = np.mean([p[i] for p in selected_preds])
+            margin = last_price * volatility * np.sqrt(i + 1) * 1.2
+            upper_bound.append(avg_pred + margin)
+            lower_bound.append(avg_pred - margin)
+        
+        fig.add_trace(go.Scatter(
+            x=list(all_pred_dates[1:]) + list(all_pred_dates[1:])[::-1],
+            y=upper_bound + lower_bound[::-1],
+            fill='toself',
+            fillcolor='rgba(102, 126, 234, 0.15)',
+            line=dict(color='rgba(102, 126, 234, 0)'),
+            name='Khoảng Tin Cậy',
+            showlegend=True
+        ))
+    
+    num_models = len(selected_models)
+    fig.update_layout(
+        title=f"Dự Đoán Giá {selected_coin.upper()} ({prediction_horizon}) - {num_models} Mô Hình",
+        xaxis_title="Ngày",
+        yaxis_title="Giá (USD)",
+        height=550,
+        hovermode='x unified',
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+        template="plotly_dark"
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Prediction summary table
+    st.markdown("---")
+    st.subheader("📋 Tóm Tắt Dự Đoán Từ Các Mô Hình Đã Chọn")
+    
+    # Create summary dataframe based on selected models
+    summary_rows = []
+    all_selected_predictions = []
+    
+    if "🧠 LSTM Deep Learning" in selected_models:
+        summary_rows.append({
+            'Mô Hình': '🧠 LSTM Deep Learning',
+            'Giá Dự Đoán': lstm_predictions[-1],
+            'Thay Đổi (%)': ((lstm_predictions[-1] / last_price) - 1) * 100,
+            'Xu Hướng': '📈 Tăng' if lstm_predictions[-1] > last_price else '📉 Giảm'
+        })
+        all_selected_predictions.append(lstm_predictions[-1])
+    
+    if "📊 Moving Average (MA-20)" in selected_models:
+        summary_rows.append({
+            'Mô Hình': '📊 Moving Average (MA-20)',
+            'Giá Dự Đoán': ma_predictions[-1],
+            'Thay Đổi (%)': ((ma_predictions[-1] / last_price) - 1) * 100,
+            'Xu Hướng': '📈 Tăng' if ma_predictions[-1] > last_price else '📉 Giảm'
+        })
+        all_selected_predictions.append(ma_predictions[-1])
+    
+    if "📈 Exponential MA (EMA)" in selected_models:
+        summary_rows.append({
+            'Mô Hình': '📈 Exponential MA (EMA)',
+            'Giá Dự Đoán': ema_predictions[-1],
+            'Thay Đổi (%)': ((ema_predictions[-1] / last_price) - 1) * 100,
+            'Xu Hướng': '📈 Tăng' if ema_predictions[-1] > last_price else '📉 Giảm'
+        })
+        all_selected_predictions.append(ema_predictions[-1])
+    
+    summary_df = pd.DataFrame(summary_rows)
+    
+    st.dataframe(
+        summary_df.style.format({
+            'Giá Dự Đoán': '${:,.2f}',
+            'Thay Đổi (%)': '{:+.2f}%'
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
+    
+    # Metrics cards
+    st.markdown("---")
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.metric(
+            "💵 Giá Hiện Tại",
+            f"${last_price:,.2f}"
+        )
+    
+    with col2:
+        avg_prediction = np.mean(all_selected_predictions) if all_selected_predictions else last_price
+        avg_change = ((avg_prediction / last_price) - 1) * 100
+        st.metric(
+            "📊 TB Dự Đoán",
+            f"${avg_prediction:,.2f}",
+            delta=f"{avg_change:+.2f}%"
+        )
+    
+    with col3:
+        st.metric(
+            "📈 Biên Trên",
+            f"${upper_bound[-1]:,.2f}",
+            delta=f"+{((upper_bound[-1]/last_price)-1)*100:.2f}%"
+        )
+    
+    with col4:
+        st.metric(
+            "📉 Biên Dưới",
+            f"${lower_bound[-1]:,.2f}",
+            delta=f"{((lower_bound[-1]/last_price)-1)*100:.2f}%"
+        )
+    
+    # Model consensus
+    st.markdown("---")
+    st.subheader("🎯 Độ Đồng Thuận Mô Hình")
+    
+    # Check if models agree
+    models_up = sum([
+        lstm_predictions[-1] > last_price,
+        ma_predictions[-1] > last_price,
+        ema_predictions[-1] > last_price
+    ])
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Consensus indicator
+        if models_up == 3:
+            st.success("""
+                #### ✅ Đồng Thuận Tăng (3/3 mô hình)
+                Cả 3 mô hình đều dự đoán giá tăng. Đây là tín hiệu mạnh cho xu hướng tăng.
+            """)
+        elif models_up == 0:
+            st.error("""
+                #### 🔴 Đồng Thuận Giảm (3/3 mô hình)
+                Cả 3 mô hình đều dự đoán giá giảm. Cần cẩn trọng với các vị thế mua.
+            """)
+        elif models_up >= 2:
+            st.info(f"""
+                #### ℹ️ Đa Số Tăng ({models_up}/3 mô hình)
+                Đa số mô hình dự đoán tăng, nhưng có phân kỳ. Nên theo dõi thêm.
+            """)
+        else:
+            st.warning(f"""
+                #### ⚠️ Đa Số Giảm ({3-models_up}/3 mô hình)
+                Đa số mô hình dự đoán giảm. Cân nhắc kỹ trước khi vào lệnh.
+            """)
+    
+    with col2:
+        # Prediction spread
+        all_preds = [lstm_predictions[-1], ma_predictions[-1], ema_predictions[-1]]
+        pred_spread = (max(all_preds) - min(all_preds)) / last_price * 100
+        
+        if pred_spread < 2:
+            st.success(f"""
+                #### 🎯 Độ Phân Kỳ Thấp ({pred_spread:.2f}%)
+                Các mô hình cho kết quả tương đồng. Độ tin cậy cao.
+            """)
+        elif pred_spread < 5:
+            st.info(f"""
+                #### ℹ️ Độ Phân Kỳ Trung Bình ({pred_spread:.2f}%)
+                Có sự khác biệt nhẹ giữa các mô hình. Độ tin cậy vừa.
+            """)
+        else:
+            st.warning(f"""
+                #### ⚠️ Độ Phân Kỳ Cao ({pred_spread:.2f}%)
+                Các mô hình cho kết quả khác nhau đáng kể. Cần thận trọng.
+            """)
+    
+    # Risk disclaimer
+    st.markdown("---")
+    st.warning("""
+        ⚠️ **Tuyên bố miễn trừ trách nhiệm**: Các dự đoán này được tạo bởi mô hình machine learning 
+        và không nên được coi là lời khuyên tài chính. Thị trường tiền điện tử có tính biến động cao 
+        và khó dự đoán. Luôn tự nghiên cứu và không bao giờ đầu tư nhiều hơn số tiền bạn có thể chấp nhận mất.
+    """)

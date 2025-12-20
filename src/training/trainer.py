@@ -67,13 +67,12 @@ class ModelTrainer:
         """
         Validate input shapes for training/validation data.
 
-        We now expect y to have shape (samples, 2):
-        y[:,0]: current day's actual price
-        y[:,1]: previous day's actual price
+        We now expect y to have shape (samples, forecast_horizon):
+        y is a matrix of log returns for the next N days (e.g., 5 days)
 
         Args:
             X: Input feature array, expected shape (samples, timesteps, features)
-            y: Target array, expected shape (samples, 2)
+            y: Target array, expected shape (samples, forecast_horizon) e.g., (N, 5)
         """
         if not isinstance(X, np.ndarray) or not isinstance(y, np.ndarray):
             raise ValueError("X and y must be numpy arrays.")
@@ -81,13 +80,13 @@ class ModelTrainer:
         if X.ndim != 3:
             raise ValueError(f"Expected X of shape (samples, timesteps, features), got {X.shape}.")
 
-        if y.ndim != 2 or y.shape[1] != 2:
-            raise ValueError(f"Expected y of shape (samples, 2), got {y.shape}.")
+        if y.ndim != 2:
+            raise ValueError(f"Expected y of shape (samples, forecast_horizon), got {y.shape}.")
 
         if X.shape[0] != y.shape[0]:
-            raise ValueError("Number of samples in X and y must match.")
+            raise ValueError(f"Sample mismatch: X has {X.shape[0]}, y has {y.shape[0]}.")
 
-        self.logger.info(f"Data shapes are valid: X={X.shape}, y={y.shape}")
+        self.logger.info(f"Data shapes are valid: X={X.shape}, y={y.shape} (return targets)")
 
     def prepare_callbacks(self) -> List[tf.keras.callbacks.Callback]:
         """

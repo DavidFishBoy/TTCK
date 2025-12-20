@@ -157,11 +157,16 @@ class FeatureEngineer:
         volume_feats = self.calculate_volume_features(df_features)
         df_features.update(volume_feats)
 
-        # Handle missing values: backfill and drop if still present
+        # Handle missing values: ONLY forward fill (NO bfill to prevent data leakage)
         if df_features.isnull().values.any():
-            self.logger.warning("Missing values detected, applying bfill and ffill.")
-            df_features.bfill(inplace=True)
+            initial_rows = len(df_features)
+            self.logger.warning("Missing values detected, applying forward fill only (no bfill).")
             df_features.ffill(inplace=True)
+            # Drop remaining NaN rows (typically first N rows for rolling indicators)
+            df_features.dropna(inplace=True)
+            dropped = initial_rows - len(df_features)
+            if dropped > 0:
+                self.logger.info(f"Dropped {dropped} rows with NaN values after ffill.")
 
         self.all_features = df_features.columns.tolist()
         self.logger.info(f"Added {len(df_features.columns) - len(required_cols)} technical features.")

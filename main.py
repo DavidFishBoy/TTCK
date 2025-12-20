@@ -15,13 +15,17 @@ import tensorflow as tf
 
 from src.data_collection.data_collector import DataCollector
 from src.preprocessing.pipeline import Pipeline
-from src.training.model import CryptoPredictor
+from src.training.lstm_model import CryptoPredictor
 from src.training.trainer import ModelTrainer
 from src.utils.config import Config
 from src.utils.logger import setup_logger
 from src.visualization.visualizer import CryptoVisualizer
-from src.utils.custom_losses import di_mse_loss, directional_accuracy
-from src.utils.callbacks import DirectionWeightCallback
+from src.utils.custom_losses import (
+    direction_aware_huber_loss,
+    directional_accuracy_multistep,
+    mae_return_metric,
+    rmse_return_metric
+)
 
 SEED = 42
 np.random.seed(SEED)
@@ -123,18 +127,9 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
         )
 
         model.build()
-        model.compile(loss=di_mse_loss)
+        model.compile(loss=direction_aware_huber_loss)
 
-        reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
-            monitor='val_loss',
-            factor=0.5,
-            patience=5,
-            min_lr=1e-7,
-            verbose=1
-        )
-
-        direction_weight_cb = DirectionWeightCallback(total_epochs=training_config['epochs'])
-
+        # No need for DirectionWeightCallback anymore - new loss is better
         trainer = ModelTrainer(
             model=model.model,
             model_dir=config.get_path('models_dir'),
@@ -149,14 +144,16 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
             y_train=coin_data["y_train"],
             X_val=coin_data["X_val"],
             y_val=coin_data["y_val"],
-            additional_callbacks=[reduce_lr, direction_weight_cb]
+            additional_callbacks=None  # No custom callbacks needed
         )
 
         eval_results = model.evaluate(coin_data["X_test"], coin_data["y_test"])
-        preds_scaled = model.predict(coin_data["X_test"])
+        preds_returns = model.predict(coin_data["X_test"])  # Shape: (N, 5) - log returns
 
-        preds_original = pipelines[coin].inverse_transform_predictions(preds_scaled)
-        y_test_original = pipelines[coin].inverse_transform_actuals(coin_data["y_test"])
+        # Convert returns to prices for visualization/storage
+        test_last_prices = coin_data["test_last_prices"]
+        preds_prices = pipelines[coin].inverse_transform_predictions(preds_returns, test_last_prices)
+        y_test_prices = pipelines[coin].inverse_transform_actuals(coin_data["y_test"], test_last_prices)
 
         coin_model_dir = Path(config.get_path('models_dir')) / coin
         coin_model_dir.mkdir(parents=True, exist_ok=True)
@@ -166,8 +163,8 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
         results[coin] = {
             "history": history.history,
             "evaluation": eval_results,
-            "predictions": preds_original.tolist(),
-            "actual_prices": y_test_original.tolist()
+            "predictions": preds_prices.tolist(),  # Shape: (N, 5) for 5-day forecasts
+            "actual_prices": y_test_prices.tolist()  # Shape: (N, 5)
         }
 
     return results
@@ -266,6 +263,7 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
         # Run pipeline in prediction mode to get the last sequence
         prediction_data = pipeline.run(df, prediction_mode=True)
         X = prediction_data['X']
+        last_price = prediction_data['last_price']
 
         model_path = Path(config.get_path('models_dir')) / coin / "model.keras"
         logger.info(f"Loading model for coin='{coin}' from '{model_path}'...")
@@ -277,28 +275,12 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
 
         # Number of future days to predict
         future_days = 5
-        predictions = []
-        current_X = X.copy()
 
-        # 'close' should be the last column after pipeline processing
-        close_idx = len(pipeline.numeric_features)  # 'close' is appended as the last column
-
-        for i in range(future_days):
-            preds_scaled = model.predict(current_X)
-            preds_original = pipeline.inverse_transform_predictions(preds_scaled)  # real-world price
-            predicted_price = float(preds_original[0])
-            predictions.append(predicted_price)
-
-            # Re-transform predicted real-world price back into target-scaled domain
-            rescaled_close = pipeline.target_scaler.transform(np.array([[predicted_price]]))[0, 0]
-
-            # Update sequence with the newly predicted day
-            new_row = current_X[0, -1, :].copy()
-            new_row[close_idx] = rescaled_close
-
-            # Shift and update sequence for next prediction
-            current_X = np.roll(current_X, -1, axis=1)
-            current_X[0, -1, :] = new_row
+        # Predict returns for next 5 days directly (no iterative rollout needed!)
+        preds_returns = model.predict(X)  # Shape: (1, 5) - log returns for 5 days
+        
+        # Convert log returns to actual prices
+        predictions = pipeline.inverse_transform_predictions(preds_returns[0], last_price)
 
         # Create a user-friendly JSON structure
         prediction_output = {
@@ -328,8 +310,8 @@ async def main():
     parser = argparse.ArgumentParser(description="Cryptocurrency Price Prediction")
     parser.add_argument("--config", type=str, default="configs/config.yaml", help="Path to configuration file")
     parser.add_argument("--mode", type=str, default="train",
-                        choices=["train", "predict", "collect-data", "full-pipeline"],
-                        help="Pipeline mode: train, predict, collect-data, or full-pipeline")
+                        choices=["train", "predict", "collect-data", "full-pipeline", "compare-models"],
+                        help="Pipeline mode: train, predict, collect-data, full-pipeline, or compare-models")
     parser.add_argument("--coins", type=str, nargs="*", default=None,
                         help="List of coins to process (overrides config file)")
     args = parser.parse_args()
@@ -380,8 +362,125 @@ async def main():
         save_results(results, config, logger)
         await run_prediction(config, logger, coins=args.coins)
         logger.info("Full pipeline completed.")
+    elif args.mode == "compare-models":
+        await compare_models_mode(config, logger, coins=args.coins)
     else:
         logger.warning("Unknown mode selected.")
+
+
+async def compare_models_mode(config: Config, logger: logging.Logger, coins: Optional[List[str]] = None):
+    """Compare LSTM, baseline, and ARIMA models."""
+    logger.info("Starting model comparison mode...")
+    
+    data_config = config.get_data_config()
+    selected_coins = coins or data_config.get('coins', [])
+    
+    from src.training.baseline_models import get_all_baseline_models
+    from src.training.arima_predictor import ARIMAPredictor
+    
+    results_dir = Path(config.get_path('results_dir'))
+    comparison_dir = results_dir / "model_comparison"
+    comparison_dir.mkdir(parents=True, exist_ok=True)
+    
+    for coin in selected_coins:
+        logger.info(f"Comparing models for {coin}...")
+        
+        # Load processed test data
+        processed_dir = Path(config.get_path('processed_data_dir')) / coin
+        
+        if not processed_dir.exists():
+            logger.warning(f"No processed data found for {coin}, skipping")
+            continue
+        
+        try:
+            X_test = np.load(processed_dir / "X_test.npy")
+            y_test = np.load(processed_dir / "y_test.npy")
+            
+            # Load pipeline to inverse transform
+            pipeline = Pipeline(config=config)
+            scaler_dir = processed_dir / "scalers"
+            pipeline.load_scaler(
+                scaler_dir / "feature_scaler.joblib",
+                scaler_dir / "target_scaler.joblib"
+            )
+            
+            # Get actual prices
+            y_test_prices = pipeline.inverse_transform_actuals(y_test)
+            
+            comparison_results = {
+                'coin': coin,
+                'models': {},
+                'comparison_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # 1. LSTM predictions (load existing model)
+            lstm_model_path = Path(config.get_path('models_dir')) / coin / "model.keras"
+            if lstm_model_path.exists():
+                logger.info(f"Loading LSTM model for {coin}...")
+                lstm_model = CryptoPredictor.load(lstm_model_path)
+                lstm_preds_scaled = lstm_model.predict(X_test)
+                lstm_preds = pipeline.inverse_transform_predictions(lstm_preds_scaled.flatten())
+                
+                comparison_results['models']['lstm'] = {
+                    'mae': float(np.mean(np.abs(y_test_prices - lstm_preds))),
+                    'rmse': float(np.sqrt(np.mean((y_test_prices - lstm_preds)**2))),
+                    'directional_accuracy': float(np.mean(
+                        np.sign(np.diff(y_test_prices, prepend=y_test_prices[0])) ==
+                        np.sign(np.diff(lstm_preds, prepend=lstm_preds[0]))
+                    ))
+                }
+                logger.info(f"LSTM metrics: {comparison_results['models']['lstm']}")
+            else:
+                logger.warning(f"No LSTM model found for {coin}")
+            
+            # 2. Baseline models
+            logger.info("Running baseline models...")
+            close_idx = len(pipeline.numeric_features)  # close is last feature
+            
+            baseline_models = get_all_baseline_models()
+            for baseline in baseline_models:
+                preds_scaled = baseline.predict(X_test, close_idx=close_idx)
+                preds = pipeline.inverse_transform_predictions(preds_scaled)
+                
+                metrics = baseline.evaluate(y_test_prices, preds)
+                comparison_results['models'][baseline.name.lower().replace('(', '_').replace(')', '').replace('=', '')] = metrics
+                logger.info(f"{baseline.name} metrics: {metrics}")
+            
+            # 3. ARIMA model
+            logger.info("Running ARIMA model...")
+            try:
+                arima = ARIMAPredictor()
+                arima_preds_scaled = arima.predict_from_sequences(X_test, close_idx=close_idx)
+                arima_preds = pipeline.inverse_transform_predictions(arima_preds_scaled)
+                
+                arima_metrics = arima.evaluate(y_test_prices, arima_preds)
+                comparison_results['models']['arima'] = arima_metrics
+                logger.info(f"ARIMA metrics: {arima_metrics}")
+            except Exception as e:
+                logger.error(f"ARIMA failed for {coin}: {e}")
+            
+            # Find best model
+            best_model = max(
+                comparison_results['models'].items(),
+                key=lambda x: x[1]['directional_accuracy']
+            )
+            comparison_results['best_model'] = best_model[0]
+            comparison_results['best_directional_accuracy'] = best_model[1]['directional_accuracy']
+            
+            # Save results
+            result_file = comparison_dir / f"{coin}_comparison.json"
+            with open(result_file, 'w') as f:
+                json.dump(comparison_results, f, indent=4)
+            
+            logger.info(f"Comparison results saved to {result_file}")
+            logger.info(f"Best model for {coin}: {best_model[0]} (Dir Acc: {best_model[1]['directional_accuracy']:.4f})")
+            
+        except Exception as e:
+            logger.error(f"Error comparing models for {coin}: {e}")
+            continue
+    
+    logger.info("Model comparison completed for all coins.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

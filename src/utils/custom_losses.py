@@ -1,64 +1,125 @@
+"""
+Custom loss functions and metrics for cryptocurrency return prediction.
+Optimized for multi-horizon forecasting with directional awareness.
+"""
+
 import tensorflow as tf
+from typing import Optional
 
-# Global variable to control direction weighting. Initially set high, then reduced via callback.
-DIRECTION_WEIGHT_FACTOR = tf.Variable(3.0, trainable=False, dtype=tf.float32)
 
-def directional_accuracy(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-    y_true_cur = y_true[:,0]
-    y_true_prev = y_true[:,1]
-    y_pred_cur = tf.reshape(y_pred, [-1])
-    direction_real = tf.sign(y_true_cur - y_true_prev)
-    direction_pred = tf.sign(y_pred_cur - y_true_prev)
-    correct = tf.cast(tf.equal(direction_pred, direction_real), tf.float32)
+def directional_accuracy_multistep(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    """
+    Directional accuracy for multi-horizon returns.
+    Measures how often predicted return direction matches actual direction.
+    
+    Args:
+        y_true: shape (batch, horizon) - actual log returns
+        y_pred: shape (batch, horizon) - predicted log returns
+    
+    Returns:
+        Scalar tensor with accuracy (0.0 to 1.0)
+    """
+    direction_true = tf.sign(y_true)
+    direction_pred = tf.sign(y_pred)
+    correct = tf.cast(tf.equal(direction_pred, direction_true), tf.float32)
     return tf.reduce_mean(correct)
 
-def di_mse_loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+
+def direction_aware_huber_loss(
+    y_true: tf.Tensor,
+    y_pred: tf.Tensor,
+    delta: float = 1.0,
+    direction_weight: float = 1.5
+) -> tf.Tensor:
     """
-    DI-MSE loss that uses DIRECTION_WEIGHT_FACTOR to penalize wrong directions more in early training.
+    Direction-aware Huber loss for return prediction.
+    
+    Combines:
+    1. Huber loss (robust to outliers in return magnitudes)
+    2. Direction penalty (wrong trend direction gets extra weight)
+    
+    This addresses the critical issue in the old di_mse_loss where wrong
+    directions were penalized by a constant, not by error magnitude.
+    
+    Args:
+        y_true: shape (batch, horizon) - actual log returns
+        y_pred: shape (batch, horizon) - predicted log returns
+        delta: Huber loss threshold (1.0 means errors < 1.0 use quadratic loss)
+        direction_weight: multiplier for wrong-direction predictions (e.g., 1.5)
+    
+    Returns:
+        Scalar loss value
     """
-    y_true_cur = y_true[:,0]
-    y_true_prev = y_true[:,1]
-    pred = tf.squeeze(y_pred, axis=1)
-    N = tf.cast(tf.shape(y_true_cur)[0], tf.float32)
+    # Standard Huber loss calculation
+    error = y_true - y_pred
+    abs_error = tf.abs(error)
+    
+    # Huber: quadratic for small errors, linear for large errors
+    quadratic = tf.minimum(abs_error, delta)
+    linear = abs_error - quadratic
+    huber = 0.5 * quadratic ** 2 + delta * linear
+    
+    # Direction-based weighting
+    direction_true = tf.sign(y_true)
+    direction_pred = tf.sign(y_pred)
+    
+    # Mask for wrong direction predictions
+    wrong_direction = tf.cast(
+        tf.not_equal(direction_pred, direction_true),
+        tf.float32
+    )
+    
+    # Apply extra penalty for wrong direction
+    # If correct direction: weight = 1.0
+    # If wrong direction: weight = direction_weight (e.g., 1.5)
+    weights = 1.0 + (direction_weight - 1.0) * wrong_direction
+    weighted_huber = huber * weights
+    
+    return tf.reduce_mean(weighted_huber)
 
-    direction_real = tf.sign(y_true_cur - y_true_prev)
-    direction_pred = tf.sign(pred - y_true_prev)
 
-    correct_mask = tf.equal(direction_pred, direction_real)
-    correct_mask_f = tf.cast(correct_mask, tf.float32)
+def mse_return_loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    """
+    Simple MSE loss for returns (baseline).
+    
+    Args:
+        y_true: shape (batch, horizon) - actual log returns
+        y_pred: shape (batch, horizon) - predicted log returns
+    
+    Returns:
+        Scalar MSE loss
+    """
+    return tf.reduce_mean(tf.square(y_true - y_pred))
 
-    up_mask = direction_real > 0
-    down_mask = tf.logical_not(up_mask)
 
-    ups = tf.reduce_sum(tf.cast(up_mask, tf.float32))
-    downs = tf.reduce_sum(tf.cast(down_mask, tf.float32))
-    total_dir = ups + downs
+def mae_return_metric(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    """
+    MAE metric for returns.
+    
+    Args:
+        y_true: shape (batch, horizon) - actual log returns
+        y_pred: shape (batch, horizon) - predicted log returns
+    
+    Returns:
+        Scalar MAE value
+    """
+    return tf.reduce_mean(tf.abs(y_true - y_pred))
 
-    diff = pred - y_true_cur
-    sq_err = diff * diff
 
-    def fallback_mse():
-        return tf.reduce_mean(sq_err)
+def rmse_return_metric(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    """
+    RMSE metric for returns.
+    
+    Args:
+        y_true: shape (batch, horizon) - actual log returns
+        y_pred: shape (batch, horizon) - predicted log returns
+    
+    Returns:
+        Scalar RMSE value
+    """
+    return tf.sqrt(tf.reduce_mean(tf.square(y_true - y_pred)))
 
-    def compute_di_mse():
-        eps = tf.constant(1e-7, tf.float32)
-        W_up = tf.where(tf.greater(total_dir, eps), ups/(total_dir+eps), 1.0)
-        W_down = tf.where(tf.greater(total_dir, eps), downs/(total_dir+eps), 1.0)
 
-        upward_correct = tf.logical_and(correct_mask, up_mask)
-        downward_correct = tf.logical_and(correct_mask, down_mask)
-
-        W_up_mask = tf.cast(upward_correct, tf.float32)*W_up
-        W_down_mask = tf.cast(downward_correct, tf.float32)*W_down
-
-        W = W_up_mask + W_down_mask
-        correct_loss = W * sq_err
-
-        # Wrong directions: penalize using DIRECTION_WEIGHT_FACTOR
-        wrong_mask = tf.logical_not(correct_mask)
-        wrong_loss = tf.cast(wrong_mask, tf.float32)*DIRECTION_WEIGHT_FACTOR
-
-        di_mse = (tf.reduce_sum(correct_loss) + tf.reduce_sum(wrong_loss))/N
-        return di_mse
-
-    return tf.cond(tf.less(total_dir, 1e-7), fallback_mse, compute_di_mse)
+# Backward compatibility aliases (deprecated - kept for migration)
+directional_accuracy = directional_accuracy_multistep
+di_mse_loss = direction_aware_huber_loss
