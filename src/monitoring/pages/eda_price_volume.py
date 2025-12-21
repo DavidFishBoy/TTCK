@@ -13,15 +13,37 @@ from src.analysis.market_analyzer import load_all_coins_data, detect_volume_spik
 from src.assistant.chart_analyzer import get_chart_analyzer
 
 
-def render_price_volume_page(coin: str):
-    """Render trang phân tích giá và khối lượng cho coin cụ thể."""
-    if not coin:
-        st.warning("⚠️ Vui lòng chọn coin từ thanh bên")
-        return
-    
-    st.title(f"📈 Phân Tích Giá & Khối Lượng - {coin.upper()}")
+def render_price_volume_page():
+    """Render trang phân tích giá và khối lượng."""
+    st.title("📈 Phân Tích Giá & Khối Lượng")
     
     # Page introduction
+    st.markdown("""
+        <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
+                    border-left: 3px solid #667eea; margin-bottom: 1rem;'>
+            <b>📖 Giới thiệu:</b> Trang này phân tích chi tiết biến động giá, đường trung bình động (MA), 
+            khối lượng giao dịch và phân phối lợi nhuận cho coin bạn chọn.
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Coin selector inside page
+    st.subheader("⚙️ Chọn Coin")
+    
+    coins = [
+        "bitcoin", "ethereum", "litecoin", "binancecoin",
+        "cardano", "solana", "pancakeswap", "axieinfinity", "thesandbox"
+    ]
+    
+    coin = st.selectbox(
+        "Chọn coin để phân tích:",
+        coins,
+        format_func=lambda x: x.upper(),
+        key="price_volume_coin_selector"
+    )
+    
+    st.markdown("---")
+    
+    # Page header with selected coin
     st.markdown(f"""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>

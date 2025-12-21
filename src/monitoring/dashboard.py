@@ -389,23 +389,6 @@ def render_sidebar():
             label_visibility="collapsed"
         )
         
-        st.markdown("---")
-        
-        # Coin selector (only for Price & Volume page)
-        selected_coin = None
-        if page == "📈 Phân Tích Giá & Khối Lượng":
-            st.markdown("<p class='nav-section-title'>💰 CHỌN COIN</p>", unsafe_allow_html=True)
-            coins = [
-                "bitcoin", "ethereum", "litecoin", "binancecoin",
-                "cardano", "solana", "pancakeswap", "axieinfinity", "thesandbox"
-            ]
-            selected_coin = st.selectbox(
-                "Coin",
-                coins,
-                format_func=lambda x: x.upper(),
-                label_visibility="collapsed"
-            )
-        
         # Footer
         st.markdown("---")
         st.markdown("""
@@ -415,7 +398,7 @@ def render_sidebar():
             </div>
         """, unsafe_allow_html=True)
         
-        return page, selected_coin
+        return page
 
 
 def main():
@@ -424,7 +407,7 @@ def main():
     inject_custom_css()
     
     # Render sidebar and get selection
-    page, selected_coin = render_sidebar()
+    page = render_sidebar()
     
     # Route to appropriate page
     if page == "🏠 Trang Chủ":
@@ -434,7 +417,7 @@ def main():
         render_market_overview_page()
     
     elif page == "📈 Phân Tích Giá & Khối Lượng":
-        render_price_volume_page(selected_coin)
+        render_price_volume_page()  # No coin param - selector inside page
     
     elif page == "📉 Phân Tích Biến Động & Rủi Ro":
         render_volatility_risk_page()  # No coin param - selector inside page
