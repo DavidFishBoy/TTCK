@@ -19,6 +19,7 @@ from src.analysis.financial_metrics import (
     calculate_var_cvar,
     calculate_rolling_metrics
 )
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_volatility_risk_page():
@@ -74,7 +75,12 @@ def render_volatility_risk_page():
     df = data_dict[coin]
     prices = df['close']
     
-    # Rolling Volatility
+    # Initialize chart analyzer
+    chart_analyzer = get_chart_analyzer()
+    
+    # =========================================================================
+    # CHART 1: Rolling Volatility
+    # =========================================================================
     st.subheader("📊 Biến Động Theo Thời Gian")
     
     st.markdown("""
@@ -120,7 +126,40 @@ def render_volatility_risk_page():
     
     st.plotly_chart(fig, use_container_width=True)
     
-    # Drawdown Analysis
+    # AI Analysis Button for Volatility Chart
+    if st.button("🤖 AI Phân Tích Biểu Đồ Biến Động", key="analyze_volatility"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            # Prepare chart data
+            vol_14d_latest = vol_14d.iloc[-1] * 100 if len(vol_14d) > 0 else 0
+            vol_30d_latest = vol_30d.iloc[-1] * 100 if len(vol_30d) > 0 else 0
+            vol_14d_avg = vol_14d.mean() * 100 if len(vol_14d) > 0 else 0
+            vol_30d_avg = vol_30d.mean() * 100 if len(vol_30d) > 0 else 0
+            
+            # Determine trend
+            if len(vol_14d) > 30:
+                trend = "TĂNG" if vol_14d.iloc[-1] > vol_14d.iloc[-30] else "GIẢM"
+            else:
+                trend = "KHÔNG ĐỦ DỮ LIỆU"
+            
+            chart_data = {
+                "vol_14d_latest": vol_14d_latest,
+                "vol_30d_latest": vol_30d_latest,
+                "vol_14d_avg": vol_14d_avg,
+                "vol_30d_avg": vol_30d_avg,
+                "volatility_trend": trend
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=coin,
+                chart_type="rolling_volatility",
+                chart_data=chart_data,
+                chart_title="Biến Động Lăn Theo Thời Gian"
+            )
+            st.markdown(analysis)
+    
+    # =========================================================================
+    # CHART 2: Drawdown Analysis
+    # =========================================================================
     st.markdown("---")
     st.subheader("📉 Phân Tích Sụt Giảm (Drawdown)")
     
@@ -172,7 +211,30 @@ def render_volatility_risk_page():
     
     st.plotly_chart(fig, use_container_width=True)
     
-    # Risk Metrics
+    # AI Analysis Button for Drawdown Chart
+    if st.button("🤖 AI Phân Tích Biểu Đồ Drawdown", key="analyze_drawdown"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            current_dd = drawdown_series.iloc[-1] * 100 if len(drawdown_series) > 0 else 0
+            dd_count_20 = (drawdown_series < -0.2).sum()
+            
+            chart_data = {
+                "max_drawdown": max_dd * 100,
+                "max_dd_duration": max_dd_duration,
+                "current_drawdown": current_dd,
+                "dd_count_20": int(dd_count_20)
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=coin,
+                chart_type="drawdown",
+                chart_data=chart_data,
+                chart_title="Biểu Đồ Underwater (Drawdown)"
+            )
+            st.markdown(analysis)
+    
+    # =========================================================================
+    # CHART 3: Risk Metrics & Returns Distribution
+    # =========================================================================
     st.markdown("---")
     st.subheader("⚠️ Các Chỉ Số Rủi Ro")
     
@@ -233,7 +295,32 @@ def render_volatility_risk_page():
     
     st.plotly_chart(fig, use_container_width=True)
     
+    # AI Analysis Button for Returns Distribution
+    if st.button("🤖 AI Phân Tích Phân Phối Lợi Nhuận", key="analyze_returns"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            positive_days = (returns > 0).sum()
+            total_days = len(returns)
+            
+            chart_data = {
+                "mean_return": returns.mean(),
+                "std_return": returns.std(),
+                "var_95": var_95,
+                "cvar_95": cvar_95,
+                "annualized_vol": annualized_vol,
+                "positive_days_pct": (positive_days / total_days) * 100 if total_days > 0 else 0
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=coin,
+                chart_type="returns_distribution",
+                chart_data=chart_data,
+                chart_title="Phân Phối Lợi Nhuận & VaR"
+            )
+            st.markdown(analysis)
+    
+    # =========================================================================
     # Risk Assessment
+    # =========================================================================
     st.markdown("---")
     st.subheader("🎯 Tổng Kết Đánh Giá Rủi Ro")
     

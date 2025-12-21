@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.analysis.market_analyzer import load_all_coins_data, detect_volume_spike
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_price_volume_page(coin: str):
@@ -46,10 +47,14 @@ def render_price_volume_page(coin: str):
     
     df = data_dict[coin]
     
-    # Price with Moving Averages
+    # Initialize chart analyzer
+    chart_analyzer = get_chart_analyzer()
+    
+    # =========================================================================
+    # CHART 1: Price with Moving Averages
+    # =========================================================================
     st.subheader("📊 Giá Với Đường Trung Bình Động (MA)")
     
-    # Chart explanation
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
@@ -127,7 +132,44 @@ def render_price_volume_page(coin: str):
         trend_200 = "📈 Tăng" if current_price > ma200 else "📉 Giảm"
         st.metric("Xu Hướng Dài Hạn (MA200)", trend_200)
     
-    # Volume Analysis
+    # AI Analysis Button for Price/MA Chart
+    if st.button("🤖 AI Phân Tích Biểu Đồ Giá & MA", key="analyze_price_ma"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            # Detect cross signal
+            if len(df) > 50:
+                ma20_prev = df['MA20'].iloc[-2]
+                ma50_prev = df['MA50'].iloc[-2]
+                if ma20 > ma50 and ma20_prev <= ma50_prev:
+                    cross_signal = "Golden Cross (MA20 cắt lên MA50) - Tín hiệu mua"
+                elif ma20 < ma50 and ma20_prev >= ma50_prev:
+                    cross_signal = "Death Cross (MA20 cắt xuống MA50) - Tín hiệu bán"
+                else:
+                    cross_signal = "Không có tín hiệu cross gần đây"
+            else:
+                cross_signal = "Không đủ dữ liệu"
+            
+            chart_data = {
+                "current_price": current_price,
+                "ma20": ma20,
+                "ma50": ma50,
+                "ma200": ma200 if not pd.isna(ma200) else 0,
+                "price_vs_ma20": "TRÊN" if current_price > ma20 else "DƯỚI",
+                "price_vs_ma50": "TRÊN" if current_price > ma50 else "DƯỚI",
+                "price_vs_ma200": "TRÊN" if current_price > ma200 else "DƯỚI",
+                "cross_signal": cross_signal
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=coin,
+                chart_type="price_ma",
+                chart_data=chart_data,
+                chart_title=f"Giá {coin.upper()} Với Đường Trung Bình Động"
+            )
+            st.markdown(analysis)
+    
+    # =========================================================================
+    # CHART 2: Volume Analysis
+    # =========================================================================
     st.markdown("---")
     st.subheader("📊 Phân Tích Khối Lượng Giao Dịch")
     
@@ -184,18 +226,53 @@ def render_price_volume_page(coin: str):
     
     z_scores = detect_volume_spike(df, window=20, threshold=2.0)
     spikes = df[abs(z_scores) > 2.0].tail(5)
+    spike_count = len(df[abs(z_scores) > 2.0])
     
     if len(spikes) > 0:
-        st.warning(f"⚠️ Phát hiện {len(df[abs(z_scores) > 2.0])} đợt đột biến khối lượng trong toàn bộ lịch sử")
+        st.warning(f"⚠️ Phát hiện {spike_count} đợt đột biến khối lượng trong toàn bộ lịch sử")
         st.markdown("**5 Đột Biến Gần Nhất:**")
+        latest_spike_date = None
+        latest_spike_zscore = 0
         for date, row in spikes.iterrows():
             z = z_scores.loc[date]
             spike_type = "🔥 Cao" if z > 0 else "❄️ Thấp"
             st.markdown(f"- **{date.strftime('%Y-%m-%d')}**: {spike_type} (Z-Score: {z:.2f})")
+            latest_spike_date = date.strftime('%Y-%m-%d')
+            latest_spike_zscore = z
     else:
         st.success("✅ Không có đột biến khối lượng đáng kể gần đây")
+        latest_spike_date = "N/A"
+        latest_spike_zscore = 0
     
-    # Returns Distribution
+    # Calculate volume stats
+    avg_volume_20d = df['volume'].tail(20).mean()
+    current_volume = df['volume'].iloc[-1]
+    volume_vs_avg = current_volume / avg_volume_20d if avg_volume_20d > 0 else 1
+    volume_trend = "TĂNG" if df['volume'].tail(7).mean() > df['volume'].tail(30).mean() else "GIẢM"
+    
+    # AI Analysis Button for Volume
+    if st.button("🤖 AI Phân Tích Khối Lượng", key="analyze_volume"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            chart_data = {
+                "avg_volume_20d": avg_volume_20d,
+                "volume_vs_avg": volume_vs_avg,
+                "spike_count": spike_count,
+                "latest_spike_date": latest_spike_date,
+                "latest_spike_zscore": latest_spike_zscore,
+                "volume_trend": volume_trend
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=coin,
+                chart_type="volume_analysis",
+                chart_data=chart_data,
+                chart_title="Phân Tích Khối Lượng Giao Dịch"
+            )
+            st.markdown(analysis)
+    
+    # =========================================================================
+    # CHART 3: Returns Distribution
+    # =========================================================================
     st.markdown("---")
     st.subheader("📊 Phân Phối Lợi Nhuận Hàng Ngày")
     
@@ -235,12 +312,38 @@ def render_price_volume_page(coin: str):
     st.plotly_chart(fig, use_container_width=True)
     
     # Summary stats
+    positive_days = int((returns > 0).sum())
+    negative_days = int((returns < 0).sum())
+    total_days = len(returns)
+    
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         st.metric("Lợi Nhuận TB/Ngày", f"{returns.mean():.2f}%")
     with col2:
         st.metric("Độ Lệch Chuẩn", f"{returns.std():.2f}%")
     with col3:
-        st.metric("Ngày Tăng Giá", f"{(returns > 0).sum()} ({(returns > 0).mean()*100:.1f}%)")
+        st.metric("Ngày Tăng Giá", f"{positive_days} ({(returns > 0).mean()*100:.1f}%)")
     with col4:
-        st.metric("Ngày Giảm Giá", f"{(returns < 0).sum()} ({(returns < 0).mean()*100:.1f}%)")
+        st.metric("Ngày Giảm Giá", f"{negative_days} ({(returns < 0).mean()*100:.1f}%)")
+    
+    # AI Analysis Button for Returns Histogram
+    if st.button("🤖 AI Phân Tích Phân Phối Lợi Nhuận", key="analyze_returns_hist"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            chart_data = {
+                "mean_return": returns.mean(),
+                "std_return": returns.std(),
+                "positive_days": positive_days,
+                "negative_days": negative_days,
+                "positive_pct": (positive_days / total_days) * 100 if total_days > 0 else 0,
+                "negative_pct": (negative_days / total_days) * 100 if total_days > 0 else 0,
+                "max_return": returns.max(),
+                "min_return": returns.min()
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=coin,
+                chart_type="returns_histogram",
+                chart_data=chart_data,
+                chart_title="Phân Phối Lợi Nhuận Hàng Ngày"
+            )
+            st.markdown(analysis)

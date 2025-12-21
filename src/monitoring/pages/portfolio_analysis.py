@@ -20,6 +20,7 @@ from src.analysis.portfolio_engine import (
     calculate_portfolio_metrics,
     compare_portfolio_strategies
 )
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_portfolio_analysis_page():
@@ -153,6 +154,43 @@ def render_portfolio_analysis_page():
         )
         
         st.plotly_chart(fig, use_container_width=True)
+        
+        # AI Analysis Button for Portfolio Chart
+        chart_analyzer = get_chart_analyzer()
+        if st.button("🤖 AI Phân Tích Danh Mục", key="analyze_portfolio"):
+            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+                metrics = calculate_portfolio_metrics(portfolio_df)
+                
+                # Prepare strategies summary
+                strategies = "Equal Weight, Risk Parity"
+                
+                # Get returns and drawdowns for each strategy
+                returns_summary = ""
+                drawdown_summary = ""
+                for idx, row in comparison_df.iterrows():
+                    returns_summary += f"- {idx}: {row['total_return']:.2f}%\n"
+                    drawdown_summary += f"- {idx}: {row['max_drawdown']:.2f}%\n"
+                
+                best_name = comparison_df['sharpe_ratio'].idxmax()
+                worst_name = comparison_df['sharpe_ratio'].idxmin()
+                
+                chart_data = {
+                    "strategies": strategies,
+                    "returns_summary": returns_summary,
+                    "best_strategy": best_name,
+                    "best_return": comparison_df.loc[best_name, 'total_return'],
+                    "worst_strategy": worst_name,
+                    "worst_return": comparison_df.loc[worst_name, 'total_return'],
+                    "drawdown_summary": drawdown_summary
+                }
+                
+                analysis = chart_analyzer.analyze_chart(
+                    coin="portfolio",
+                    chart_type="portfolio_returns",
+                    chart_data=chart_data,
+                    chart_title=f"Đường Cong Vốn - {strategy}"
+                )
+                st.markdown(analysis)
         
         # Metrics
         metrics = calculate_portfolio_metrics(portfolio_df)

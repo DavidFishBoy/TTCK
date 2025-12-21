@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.analysis.market_analyzer import load_all_coins_data
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_prediction_page():
@@ -312,6 +313,56 @@ def render_prediction_page():
     )
     
     st.plotly_chart(fig, use_container_width=True)
+    
+    # AI Analysis Button for Prediction Chart
+    chart_analyzer = get_chart_analyzer()
+    if st.button("🤖 AI Phân Tích Biểu Đồ Dự Đoán", key="analyze_prediction"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            # Prepare predictions summary
+            predictions_summary = ""
+            final_pred = 0
+            pred_count = 0
+            
+            if "🧠 LSTM Deep Learning" in selected_models:
+                predictions_summary += f"- LSTM: ${lstm_predictions[-1]:,.2f}\n"
+                final_pred += lstm_predictions[-1]
+                pred_count += 1
+            if "📊 Moving Average (MA-20)" in selected_models:
+                predictions_summary += f"- MA(20): ${ma_predictions[-1]:,.2f}\n"
+                final_pred += ma_predictions[-1]
+                pred_count += 1
+            if "📈 Exponential MA (EMA)" in selected_models:
+                predictions_summary += f"- EMA: ${ema_predictions[-1]:,.2f}\n"
+                final_pred += ema_predictions[-1]
+                pred_count += 1
+            if "📉 ARIMA" in selected_models:
+                predictions_summary += f"- ARIMA: ${arima_predictions[-1]:,.2f}\n"
+                final_pred += arima_predictions[-1]
+                pred_count += 1
+            
+            avg_pred = final_pred / pred_count if pred_count > 0 else last_price
+            expected_change = ((avg_pred / last_price) - 1) * 100
+            expected_change_usd = avg_pred - last_price
+            trend_direction = "TĂNG" if expected_change > 0 else "GIẢM"
+            
+            chart_data = {
+                "model_name": ", ".join([m.split()[-1] for m in selected_models]),
+                "current_price": last_price,
+                "forecast_days": horizon_days,
+                "predictions_summary": predictions_summary,
+                "final_predicted_price": avg_pred,
+                "expected_change": expected_change,
+                "expected_change_usd": expected_change_usd,
+                "trend_direction": trend_direction
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=selected_coin,
+                chart_type="prediction_chart",
+                chart_data=chart_data,
+                chart_title=f"Dự Đoán Giá {selected_coin.upper()} ({prediction_horizon})"
+            )
+            st.markdown(analysis)
     
     # Prediction summary table
     st.markdown("---")

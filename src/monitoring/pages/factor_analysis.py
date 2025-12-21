@@ -17,6 +17,7 @@ from src.analysis.factor_analyzer import (
     factor_scatter_plot_data,
     cluster_by_factors
 )
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_factor_analysis_page():
@@ -124,6 +125,30 @@ def render_factor_analysis_page():
                 st.warning(f"**Cao-Thấp**: {', '.join([c.upper() for c in quadrants['High-Low']])}")
             if 'Low-High' in quadrants:
                 st.info(f"**Thấp-Cao**: {', '.join([c.upper() for c in quadrants['Low-High']])}")
+        
+        # AI Analysis Button for Scatter Plot
+        chart_analyzer = get_chart_analyzer()
+        if st.button("🤖 AI Phân Tích Biểu Đồ Nhân Tố", key="analyze_factors"):
+            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+                # Prepare scatter data summary
+                scatter_summary = ""
+                for _, row in scatter_data.iterrows():
+                    scatter_summary += f"- {row['coin'].upper()}: {x_factor}={row[x_factor]:.2f}, {y_factor}={row[y_factor]:.2f}\n"
+                
+                chart_data = {
+                    "x_factor": factor_names_vi.get(x_factor, x_factor),
+                    "y_factor": factor_names_vi.get(y_factor, y_factor),
+                    "coin_count": len(scatter_data),
+                    "scatter_data": scatter_summary
+                }
+                
+                analysis = chart_analyzer.analyze_chart(
+                    coin="all",
+                    chart_type="factor_scatter",
+                    chart_data=chart_data,
+                    chart_title=f"{factor_names_vi.get(x_factor, x_factor)} vs {factor_names_vi.get(y_factor, y_factor)}"
+                )
+                st.markdown(analysis)
     
     # Clustering
     st.markdown("---")
@@ -172,6 +197,33 @@ def render_factor_analysis_page():
                 }),
                 use_container_width=True
             )
+    
+    # AI Analysis Button for Clusters
+    if st.button("🤖 AI Phân Tích Phân Cụm", key="analyze_clusters"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            # Prepare cluster details
+            cluster_details = ""
+            for cluster_id in sorted(clustered_df['cluster'].unique()):
+                cluster_data = clustered_df[clustered_df['cluster'] == cluster_id]
+                coins = ', '.join(cluster_data['coin'].str.upper())
+                desc = cluster_data['cluster_description'].iloc[0]
+                cluster_details += f"- Cluster {cluster_id + 1} ({desc}): {coins}\n"
+            
+            factors_used = "momentum_30d, volatility, size"
+            
+            chart_data = {
+                "n_clusters": n_clusters,
+                "factors_used": factors_used,
+                "cluster_details": cluster_details
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin="all",
+                chart_type="factor_cluster",
+                chart_data=chart_data,
+                chart_title="Phân Cụm Coin"
+            )
+            st.markdown(analysis)
     
     # Factor Summary
     st.markdown("---")

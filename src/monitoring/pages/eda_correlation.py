@@ -16,6 +16,7 @@ from src.analysis.market_analyzer import (
     calculate_correlation_matrix,
     calculate_rolling_correlation_with_btc
 )
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_correlation_page():
@@ -42,7 +43,12 @@ def render_correlation_page():
         st.error("❌ Không có dữ liệu")
         return
     
-    # Correlation Matrix
+    # Initialize chart analyzer
+    chart_analyzer = get_chart_analyzer()
+    
+    # =========================================================================
+    # CHART 1: Correlation Matrix
+    # =========================================================================
     st.subheader("📊 Ma Trận Tương Quan (Lợi Nhuận)")
     
     st.markdown("""
@@ -89,18 +95,55 @@ def render_correlation_page():
     
     # Correlation Analysis Summary
     avg_corr = corr_matrix.mean().mean()
+    max_corr = corr_matrix.where(corr_matrix != 1).max().max()
+    min_corr = corr_matrix.min().min()
     
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("📊 Tương Quan Trung Bình", f"{avg_corr:.2f}")
     with col2:
-        max_corr = corr_matrix.where(corr_matrix != 1).max().max()
         st.metric("📈 Tương Quan Cao Nhất", f"{max_corr:.2f}")
     with col3:
-        min_corr = corr_matrix.min().min()
         st.metric("📉 Tương Quan Thấp Nhất", f"{min_corr:.2f}")
     
-    # Rolling Correlation with Bitcoin
+    # Find highest and lowest correlation pairs
+    pairs = []
+    for i, coin1 in enumerate(corr_matrix.columns):
+        for j, coin2 in enumerate(corr_matrix.columns):
+            if i < j:
+                pairs.append((coin1, coin2, corr_matrix.loc[coin1, coin2]))
+    
+    pairs_sorted = sorted(pairs, key=lambda x: x[2])
+    lowest_pair = pairs_sorted[0] if pairs_sorted else ("N/A", "N/A", 0)
+    highest_pair = pairs_sorted[-1] if pairs_sorted else ("N/A", "N/A", 0)
+    
+    high_corr_count = sum(1 for _, _, c in pairs if c > 0.7)
+    low_corr_count = sum(1 for _, _, c in pairs if c < 0.3)
+    
+    # AI Analysis Button for Correlation Matrix
+    if st.button("🤖 AI Phân Tích Ma Trận Tương Quan", key="analyze_corr_matrix"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            chart_data = {
+                "avg_correlation": avg_corr,
+                "highest_pair": f"{highest_pair[0].upper()} & {highest_pair[1].upper()}",
+                "highest_corr": highest_pair[2],
+                "lowest_pair": f"{lowest_pair[0].upper()} & {lowest_pair[1].upper()}",
+                "lowest_corr": lowest_pair[2],
+                "high_corr_count": high_corr_count,
+                "low_corr_count": low_corr_count
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin="all",
+                chart_type="correlation_matrix",
+                chart_data=chart_data,
+                chart_title="Ma Trận Tương Quan"
+            )
+            st.markdown(analysis)
+    
+    # =========================================================================
+    # CHART 2: Rolling Correlation with Bitcoin
+    # =========================================================================
     st.markdown("---")
     st.subheader("📈 Tương Quan Lăn Với Bitcoin (30 Ngày)")
     
@@ -144,8 +187,47 @@ def render_correlation_page():
         )
         
         st.plotly_chart(fig, use_container_width=True)
+        
+        # AI Analysis Button for Rolling Correlation
+        if st.button("🤖 AI Phân Tích Tương Quan Lăn Với BTC", key="analyze_rolling_corr"):
+            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+                # Calculate summary stats
+                correlation_summary = ""
+                most_stable = None
+                least_stable = None
+                min_std = float('inf')
+                max_std = 0
+                
+                for coin, corr_series in rolling_corrs.items():
+                    avg = corr_series.mean()
+                    std = corr_series.std()
+                    correlation_summary += f"- {coin.upper()}: TB = {avg:.2f}, Std = {std:.2f}\n"
+                    
+                    if std < min_std:
+                        min_std = std
+                        most_stable = coin
+                    if std > max_std:
+                        max_std = std
+                        least_stable = coin
+                
+                chart_data = {
+                    "window": 30,
+                    "correlation_summary": correlation_summary,
+                    "most_stable_coin": most_stable.upper() if most_stable else "N/A",
+                    "most_volatile_coin": least_stable.upper() if least_stable else "N/A"
+                }
+                
+                analysis = chart_analyzer.analyze_chart(
+                    coin="all",
+                    chart_type="rolling_correlation",
+                    chart_data=chart_data,
+                    chart_title="Tương Quan Lăn Với Bitcoin"
+                )
+                st.markdown(analysis)
     
-    # Insights
+    # =========================================================================
+    # Insights & Best Pairs
+    # =========================================================================
     st.markdown("---")
     st.subheader("💡 Nhận Định Tương Quan")
     
@@ -181,16 +263,9 @@ def render_correlation_page():
     st.markdown("---")
     st.subheader("🎯 Cặp Coin Tốt Nhất Cho Đa Dạng Hóa")
     
-    # Find lowest correlation pairs
-    pairs = []
-    for i, coin1 in enumerate(corr_matrix.columns):
-        for j, coin2 in enumerate(corr_matrix.columns):
-            if i < j:
-                pairs.append((coin1, coin2, corr_matrix.loc[coin1, coin2]))
-    
-    pairs_sorted = sorted(pairs, key=lambda x: x[2])[:5]
+    pairs_sorted_low = sorted(pairs, key=lambda x: x[2])[:5]
     
     st.markdown("**5 Cặp Coin Có Tương Quan Thấp Nhất:**")
-    for coin1, coin2, corr in pairs_sorted:
+    for coin1, coin2, corr in pairs_sorted_low:
         color = "🟢" if corr < 0.3 else "🟡" if corr < 0.5 else "🟠"
         st.markdown(f"{color} **{coin1.upper()}** & **{coin2.upper()}**: Tương quan {corr:.2f}")

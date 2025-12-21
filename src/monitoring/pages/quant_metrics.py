@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.analysis.market_analyzer import load_all_coins_data
 from src.analysis.financial_metrics import get_all_metrics
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_quant_metrics_page():
@@ -115,6 +116,37 @@ def render_quant_metrics_page():
         use_container_width=True,
         height=400
     )
+    
+    # AI Analysis Button for Quant Metrics
+    chart_analyzer = get_chart_analyzer()
+    if st.button("🤖 AI Phân Tích Chỉ Số Định Lượng", key="analyze_quant"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            # Prepare metrics table
+            metrics_table = ""
+            for _, row in display_df.head(5).iterrows():
+                metrics_table += f"| {row['Coin']} | {row['Sharpe']:.2f} | {row['Sortino']:.2f} | {row['Calmar']:.2f} | {row['Max DD']:.2f}% |\n"
+            
+            best_sharpe = display_df.iloc[0] if sort_by == 'sharpe_ratio' else metrics_df.nlargest(1, 'sharpe_ratio').iloc[0]
+            best_sortino = metrics_df.nlargest(1, 'sortino_ratio').iloc[0]
+            lowest_dd = metrics_df.nsmallest(1, 'max_drawdown').iloc[0]
+            
+            chart_data = {
+                "metrics_table": metrics_table,
+                "best_sharpe_coin": best_sharpe['coin'].upper() if 'coin' in best_sharpe else best_sharpe['Coin'],
+                "best_sharpe": best_sharpe['sharpe_ratio'] if 'sharpe_ratio' in best_sharpe else best_sharpe['Sharpe'],
+                "best_sortino_coin": best_sortino['coin'].upper(),
+                "best_sortino": best_sortino['sortino_ratio'],
+                "lowest_dd_coin": lowest_dd['coin'].upper(),
+                "lowest_dd": lowest_dd['max_drawdown']
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin="all",
+                chart_type="quant_metrics",
+                chart_data=chart_data,
+                chart_title="Chỉ Số Định Lượng"
+            )
+            st.markdown(analysis)
     
     # Analysis based on selected sort metric
     st.markdown("---")

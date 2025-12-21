@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from src.analysis.market_analyzer import load_all_coins_data
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def render_compare_models_page():
@@ -253,6 +254,36 @@ def render_compare_models_page():
     fig.update_xaxes(tickangle=0)
     
     st.plotly_chart(fig, use_container_width=True)
+    
+    # AI Analysis Button for Model Comparison
+    chart_analyzer = get_chart_analyzer()
+    if st.button("🤖 AI Phân Tích So Sánh Mô Hình", key="analyze_models"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            # Prepare models table summary
+            models_table = ""
+            for _, row in display_df.iterrows():
+                models_table += f"| {row['Mô Hình']} | ${row['MAE']:.2f} | ${row['RMSE']:.2f} | {row['Độ Chính Xác Hướng']:.1f}% |\n"
+            
+            # Get Naive baseline (simple last value prediction)
+            naive_pred = np.roll(y_true, 1)
+            naive_pred[0] = y_true[0]
+            naive_metrics = calculate_metrics(y_true, naive_pred)
+            
+            chart_data = {
+                "coin": selected_coin,
+                "models_table": models_table,
+                "best_rmse_model": best_mae_model,
+                "best_direction_model": best_dir_model,
+                "naive_rmse": naive_metrics['rmse']
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=selected_coin,
+                chart_type="model_comparison",
+                chart_data=chart_data,
+                chart_title="So Sánh Hiệu Suất Các Mô Hình"
+            )
+            st.markdown(analysis)
     
     # Prediction vs Actual chart
     st.markdown("---")

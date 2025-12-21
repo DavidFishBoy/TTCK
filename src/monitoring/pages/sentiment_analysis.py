@@ -29,6 +29,7 @@ from src.data_collection.news_collector import (
     NewsCollector,
     get_news_sentiment_data
 )
+from src.assistant.chart_analyzer import get_chart_analyzer
 
 
 def load_coin_data(coin: str = "bitcoin") -> pd.DataFrame:
@@ -423,6 +424,43 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     
     fig_timeline = create_fng_timeline_chart(sentiment_df)
     st.plotly_chart(fig_timeline, use_container_width=True)
+    
+    # AI Analysis Button for Fear & Greed Chart
+    chart_analyzer = get_chart_analyzer()
+    if st.button("🤖 AI Phân Tích Fear & Greed", key="analyze_fng"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            latest = sentiment_df.iloc[-1] if not sentiment_df.empty else {}
+            fng_7d_avg = sentiment_df['fng_value'].tail(7).mean()
+            fng_30d_avg = sentiment_df['fng_value'].tail(30).mean()
+            
+            # Determine trend
+            if fng_7d_avg > fng_30d_avg:
+                trend = "TĂNG (chuyển từ sợ hãi sang tham lam)"
+            else:
+                trend = "GIẢM (chuyển từ tham lam sang sợ hãi)"
+            
+            # Calculate correlation if available
+            if 'return' in merged_df.columns and not merged_df['return'].isna().all():
+                corr = merged_df['fng_value'].corr(merged_df['return'])
+            else:
+                corr = 0
+            
+            chart_data = {
+                "current_fng": latest.get('fng_value', 0),
+                "fng_classification": latest.get('fng_label', 'Unknown'),
+                "fng_7d_avg": fng_7d_avg,
+                "fng_30d_avg": fng_30d_avg,
+                "sentiment_trend": trend,
+                "fng_return_correlation": corr
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=selected_coin,
+                chart_type="sentiment_fng",
+                chart_data=chart_data,
+                chart_title="Fear & Greed Index"
+            )
+            st.markdown(analysis)
     
     # Overlay with return
     st.markdown("---")
