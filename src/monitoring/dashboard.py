@@ -175,9 +175,6 @@ def inject_custom_css():
             color: var(--text-primary) !important;
             font-weight: 700;
             font-size: 2rem;
-            border-bottom: 3px solid;
-            border-image: var(--accent-gradient) 1;
-            padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
         }
         

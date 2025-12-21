@@ -64,15 +64,15 @@ def render_market_overview_page():
         </div>
     """, unsafe_allow_html=True)
     
-    heatmap_df = create_returns_heatmap(data_dict, periods=[1, 7, 30, 90])
+    heatmap_df = create_returns_heatmap(data_dict, periods=[7, 30, 90])
     
     fig = go.Figure(data=go.Heatmap(
-        z=heatmap_df[['1D', '7D', '30D', '90D']].values,
-        x=['1 Ngày', '7 Ngày', '30 Ngày', '90 Ngày'],
+        z=heatmap_df[['7D', '30D', '90D']].values,
+        x=['7 Ngày', '30 Ngày', '90 Ngày'],
         y=heatmap_df['coin'].str.upper(),
         colorscale='RdYlGn',
         zmid=0,
-        text=heatmap_df[['1D', '7D', '30D', '90D']].values,
+        text=heatmap_df[['7D', '30D', '90D']].values,
         texttemplate='%{text:.1f}%',
         textfont={"size": 10},
         colorbar=dict(title="Lợi Nhuận %")
@@ -174,7 +174,7 @@ def render_market_overview_page():
         </div>
     """, unsafe_allow_html=True)
     
-    breadth_df = calculate_market_breadth(data_dict, periods=[1, 7, 14, 30, 90])
+    breadth_df = calculate_market_breadth(data_dict, periods=[7, 14, 30, 90])
     
     fig = go.Figure()
     
@@ -262,14 +262,14 @@ def render_market_overview_page():
         
         st.plotly_chart(fig, use_container_width=True)
         
-        st.dataframe(
-            liq_df.style.format({
-                'avg_volume_7d': '{:,.0f}',
-                'market_cap': '{:,.0f}',
-                'liquidity_ratio': '{:.4f}%'
-            }),
-            use_container_width=True
-        )
+        # st.dataframe(
+        #     liq_df.style.format({
+        #         'avg_volume_7d': '{:,.0f}',
+        #         'market_cap': '{:,.0f}',
+        #         'liquidity_ratio': '{:.4f}%'
+        #     }),
+        #     use_container_width=True
+        # )
     else:
         st.warning("Không có dữ liệu vốn hóa để phân tích thanh khoản")
     
