@@ -1,9 +1,4 @@
-# src/monitoring/pages/__init__.py
 
-"""
-Dashboard pages package.
-Each page is a separate module for better organization.
-"""
 
 from .home import render_home_page
 from .market_overview import render_market_overview_page

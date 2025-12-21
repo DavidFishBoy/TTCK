@@ -1,10 +1,4 @@
-# src/training/models/arima_model.py
 
-"""
-ARIMA Model for Time Series Forecasting
-
-Statistical time series model with automatic order selection and confidence intervals.
-"""
 
 import logging
 from typing import Dict, Tuple, Optional, Union
@@ -13,25 +7,13 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 
-
 class ARIMAModel:
-    """ARIMA statistical time series model"""
     
     def __init__(
         self,
         order: Tuple[int, int, int] = (5, 1, 0),
         seasonal_order: Tuple[int, int, int, int] = (0, 0, 0, 0)
     ):
-        """
-        Initialize ARIMA model
-        
-        Args:
-            order: ARIMA order (p, d, q) where:
-                - p: AR order (autoregressive)
-                - d: Differencing order
-                - q: MA order (moving average)
-            seasonal_order: Seasonal ARIMA order (P, D, Q, s)
-        """
         self.logger = self._setup_logger()
         self.order = order
         self.seasonal_order = seasonal_order
@@ -41,7 +23,6 @@ class ARIMAModel:
     
     @staticmethod
     def _setup_logger() -> logging.Logger:
-        """Setup logger"""
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.INFO)
         if not logger.handlers:
@@ -52,12 +33,6 @@ class ARIMAModel:
         return logger
     
     def fit(self, prices: pd.Series) -> None:
-        """
-        Fit ARIMA model to historical prices
-        
-        Args:
-            prices: Historical price series
-        """
         try:
             from statsmodels.tsa.arima.model import ARIMA
         except ImportError:
@@ -85,25 +60,12 @@ class ARIMAModel:
         return_conf_int: bool = False,
         alpha: float = 0.05
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, np.ndarray]]]:
-        """
-        Generate forecasts with optional confidence intervals
-        
-        Args:
-            horizon: Number of steps to forecast
-            return_conf_int: Whether to return confidence intervals
-            alpha: Significance level for CI (default: 0.05 for 95% CI)
-            
-        Returns:
-            If return_conf_int=False: predictions array
-            If return_conf_int=True: (predictions, (lower_ci, upper_ci))
-        """
         if self.fitted_model is None:
             raise ValueError("Model not fitted. Call fit() first.")
         
         self.logger.info(f"Forecasting {horizon} steps ahead...")
         
         try:
-            # Generate forecast
             forecast_result = self.fitted_model.forecast(steps=horizon)
             predictions = forecast_result.values if hasattr(forecast_result, 'values') else forecast_result
             
@@ -128,16 +90,6 @@ class ARIMAModel:
         actuals: np.ndarray,
         predictions: np.ndarray
     ) -> Dict:
-        """
-        Evaluate predictions against actual values
-        
-        Args:
-            actuals: True values
-            predictions: Predicted values
-            
-        Returns:
-            Dict of metrics
-        """
         from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
         
         mae = mean_absolute_error(actuals, predictions)
@@ -145,7 +97,6 @@ class ARIMAModel:
         mape = np.mean(np.abs((actuals - predictions) / actuals)) * 100
         r2 = r2_score(actuals, predictions)
         
-        # Directional accuracy
         actual_direction = np.sign(np.diff(actuals, prepend=actuals[0]))
         pred_direction = np.sign(np.diff(predictions, prepend=predictions[0]))
         dir_acc = np.mean(actual_direction == pred_direction)
@@ -168,22 +119,10 @@ class ARIMAModel:
         max_q: int = 5,
         d: int = 1
     ) -> Tuple[int, int, int]:
-        """
-        Automatically select best ARIMA order using AIC
-        
-        Args:
-            prices: Historical prices
-            max_p: Maximum AR order to test
-            max_q: Maximum MA order to test
-            d: Differencing order (usually 1)
-            
-        Returns:
-            Best (p, d, q) order
-        """
         try:
             from statsmodels.tsa.arima.model import ARIMA
         except ImportError:
-            return (5, 1, 0)  # Default
+            return (5, 1, 0)
         
         best_aic = np.inf
         best_order = (1, d, 0)

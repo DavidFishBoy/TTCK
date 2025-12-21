@@ -1,4 +1,3 @@
-"""Model trainer with callbacks and history saving."""
 import json
 import logging
 from datetime import datetime
@@ -8,16 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 import tensorflow as tf
 
-
 class ModelTrainer:
-    """
-    A simplified trainer class that handles model training and saving training history.
-    Assumes that:
-    - The model is already built and compiled.
-    - Data (X_train, y_train, X_val, y_val) is already prepared and scaled.
-    - y now has shape (samples, 2): y[:,0] is current day's actual price,
-      y[:,1] is previous day's actual price (for direction checking).
-    """
 
     def __init__(
         self,
@@ -28,17 +18,6 @@ class ModelTrainer:
         early_stopping_patience: int = 10,
         min_delta: float = 0.0001,
     ):
-        """
-        Initialize the trainer with given training parameters.
-
-        Args:
-            model: A compiled Keras model ready to be trained.
-            model_dir: Directory to save model checkpoints and history.
-            batch_size: Training batch size.
-            epochs: Number of epochs.
-            early_stopping_patience: Patience for EarlyStopping callback.
-            min_delta: Minimum delta for EarlyStopping.
-        """
         self.model = model
         self.model_dir = Path(model_dir)
         self.model_dir.mkdir(parents=True, exist_ok=True)
@@ -47,7 +26,6 @@ class ModelTrainer:
         self.early_stopping_patience = early_stopping_patience
         self.min_delta = min_delta
 
-        # Set up logger
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
         if not self.logger.handlers:
@@ -63,16 +41,6 @@ class ModelTrainer:
         )
 
     def validate_data_shape(self, X: np.ndarray, y: np.ndarray) -> None:
-        """
-        Validate input shapes for training/validation data.
-
-        We now expect y to have shape (samples, forecast_horizon):
-        y is a matrix of log returns for the next N days (e.g., 5 days)
-
-        Args:
-            X: Input feature array, expected shape (samples, timesteps, features)
-            y: Target array, expected shape (samples, forecast_horizon) e.g., (N, 5)
-        """
         if not isinstance(X, np.ndarray) or not isinstance(y, np.ndarray):
             raise ValueError("X and y must be numpy arrays.")
 
@@ -88,17 +56,10 @@ class ModelTrainer:
         self.logger.info(f"Data shapes are valid: X={X.shape}, y={y.shape} (return targets)")
 
     def prepare_callbacks(self) -> List[tf.keras.callbacks.Callback]:
-        """
-        Prepare minimal set of callbacks: ModelCheckpoint and EarlyStopping.
-
-        Returns:
-            List of callbacks.
-        """
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             callbacks: List[tf.keras.callbacks.Callback] = []
 
-            # Use .keras format for model checkpoints
             checkpoint_path = self.model_dir / f"model_checkpoint_{timestamp}.keras"
 
             callbacks.append(tf.keras.callbacks.ModelCheckpoint(
@@ -133,19 +94,6 @@ class ModelTrainer:
         y_val: np.ndarray,
         additional_callbacks: Optional[List[tf.keras.callbacks.Callback]] = None
     ) -> tf.keras.callbacks.History:
-        """
-        Train the model.
-
-        Args:
-            X_train: Training features.
-            y_train: Training targets (shape (samples,2))
-            X_val: Validation features.
-            y_val: Validation targets (shape (samples,2))
-            additional_callbacks: Optionally add more callbacks.
-
-        Returns:
-            Keras History object.
-        """
         self.validate_data_shape(X_train, y_train)
         self.validate_data_shape(X_val, y_val)
 
@@ -169,9 +117,6 @@ class ModelTrainer:
         return history
 
     def save_history(self, history: tf.keras.callbacks.History) -> None:
-        """
-        Save training history to a JSON file in the model directory.
-        """
         history_path = self.model_dir / "training_history.json"
         history_dict = {k: [float(x) for x in v] for k, v in history.history.items()}
 

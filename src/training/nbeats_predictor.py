@@ -1,8 +1,3 @@
-# src/training/nbeats_predictor.py
-"""
-N-BEATS Predictor for cryptocurrency forecasting.
-Handles data preparation, training, prediction, and evaluation.
-"""
 
 import json
 import logging
@@ -17,16 +12,7 @@ from src.training.model.nbeats_model import NBEATSModel
 
 logger = logging.getLogger(__name__)
 
-
 class NBEATSPredictor:
-    """
-    N-BEATS predictor for cryptocurrency forecasting.
-    
-    Key features:
-    - Global model: trains on all coins simultaneously
-    - Predicts log returns, not prices
-    - Multi-horizon: 5-day forecast by default
-    """
     
     def __init__(
         self,
@@ -37,17 +23,6 @@ class NBEATSPredictor:
         num_stacks: int = 3,
         random_seed: int = 42
     ):
-        """
-        Initialize N-BEATS predictor.
-        
-        Args:
-            horizon: Number of days to forecast (default: 5)
-            input_size: Lookback window size (default: 90)
-            learning_rate: Learning rate for training
-            max_steps: Maximum training steps
-            num_stacks: Number of NBEATS stacks
-            random_seed: Random seed for reproducibility
-        """
         self.horizon = horizon
         self.input_size = input_size
         self.learning_rate = learning_rate
@@ -64,7 +39,6 @@ class NBEATSPredictor:
         )
     
     def _init_model(self):
-        """Initialize the underlying N-BEATS model."""
         self._model = NBEATSModel(
             horizon=self.horizon,
             input_size=self.input_size,
@@ -80,27 +54,6 @@ class NBEATSPredictor:
         data_dict: Dict[str, pd.DataFrame],
         target_col: str = "close"
     ) -> pd.DataFrame:
-        """
-        Convert per-coin DataFrames to NeuralForecast long format.
-        
-        Expected input format (per coin):
-            - DataFrame with 'timestamp' or datetime index
-            - 'close' column for price data
-        
-        Output format (long format):
-            unique_id | ds        | y
-            BTC       | 2024-01-01| 0.023  (log return)
-            BTC       | 2024-01-02| -0.015
-            ETH       | 2024-01-01| 0.031
-            ...
-        
-        Args:
-            data_dict: Dictionary mapping coin names to their DataFrames
-            target_col: Column name for price data (default: 'close')
-        
-        Returns:
-            DataFrame in long format ready for NeuralForecast
-        """
         all_dfs = []
         
         for coin_name, df in data_dict.items():
@@ -108,16 +61,13 @@ class NBEATSPredictor:
                 logger.warning(f"Skipping {coin_name}: empty DataFrame")
                 continue
             
-            # Create a copy to avoid modifying original
             coin_df = df.copy()
             
-            # Handle timestamp column
             if 'timestamp' in coin_df.columns:
                 coin_df['ds'] = pd.to_datetime(coin_df['timestamp'])
             elif coin_df.index.name == 'timestamp' or isinstance(coin_df.index, pd.DatetimeIndex):
                 coin_df['ds'] = pd.to_datetime(coin_df.index)
             else:
-                # Try to find a date column
                 for col in ['date', 'time', 'datetime']:
                     if col in coin_df.columns:
                         coin_df['ds'] = pd.to_datetime(coin_df[col])
@@ -126,7 +76,6 @@ class NBEATSPredictor:
                     logger.error(f"No timestamp column found for {coin_name}")
                     continue
             
-            # Calculate log returns
             if target_col not in coin_df.columns:
                 logger.error(f"Column '{target_col}' not found in {coin_name}")
                 continue
@@ -134,13 +83,10 @@ class NBEATSPredictor:
             coin_df['log_price'] = np.log(coin_df[target_col].astype(float))
             coin_df['y'] = coin_df['log_price'].diff()
             
-            # Remove NaN from diff
             coin_df = coin_df.dropna(subset=['y'])
             
-            # Create unique_id (coin symbol in uppercase)
             coin_symbol = coin_name.upper()[:3] if len(coin_name) > 3 else coin_name.upper()
             
-            # Select only required columns
             long_df = pd.DataFrame({
                 'unique_id': coin_symbol,
                 'ds': coin_df['ds'],
@@ -153,7 +99,6 @@ class NBEATSPredictor:
         if not all_dfs:
             raise ValueError("No valid data to prepare")
         
-        # Concatenate all coin data
         result = pd.concat(all_dfs, ignore_index=True)
         result = result.sort_values(['unique_id', 'ds']).reset_index(drop=True)
         
@@ -167,20 +112,9 @@ class NBEATSPredictor:
         df_long: pd.DataFrame,
         val_size: Optional[int] = None
     ) -> Dict:
-        """
-        Train global N-BEATS model on long-format data.
-        
-        Args:
-            df_long: DataFrame in long format (unique_id, ds, y)
-            val_size: Optional validation set size (days to hold out per series)
-        
-        Returns:
-            Dictionary with training info
-        """
         if self._model is None:
             self._init_model()
         
-        # Validate input format
         required_cols = ['unique_id', 'ds', 'y']
         for col in required_cols:
             if col not in df_long.columns:
@@ -189,7 +123,6 @@ class NBEATSPredictor:
         logger.info(f"Starting N-BEATS training on {len(df_long)} samples...")
         start_time = datetime.now()
         
-        # Train the model
         nf = self._model.neural_forecast
         if val_size:
             nf.fit(df=df_long, val_size=val_size)
@@ -212,19 +145,6 @@ class NBEATSPredictor:
         return training_info
     
     def predict(self, df_long: Optional[pd.DataFrame] = None) -> pd.DataFrame:
-        """
-        Generate predictions for the next `horizon` days.
-        
-        Args:
-            df_long: Optional new data for prediction (if None, uses training data)
-        
-        Returns:
-            DataFrame with predictions:
-                unique_id | ds   | NBEATS
-                BTC       | t+1  | 0.012
-                BTC       | t+2  | -0.005
-                ...
-        """
         if not self._is_fitted:
             raise ValueError("Model must be trained before prediction. Call train() first.")
         
@@ -243,17 +163,6 @@ class NBEATSPredictor:
         last_prices: Dict[str, float],
         return_col: str = 'NBEATS'
     ) -> Dict[str, List[float]]:
-        """
-        Convert predicted log returns to actual price forecasts.
-        
-        Args:
-            predictions: DataFrame from predict() with log return predictions
-            last_prices: Dictionary mapping coin symbols to their last known prices
-            return_col: Column name containing return predictions
-        
-        Returns:
-            Dictionary mapping coin symbols to list of predicted prices
-        """
         price_forecasts = {}
         
         for coin_id in predictions['unique_id'].unique():
@@ -263,7 +172,6 @@ class NBEATSPredictor:
                 logger.warning(f"No last price for {coin_id}, skipping")
                 continue
             
-            # Convert returns to prices
             prices = []
             current_log_price = np.log(last_prices[coin_id])
             
@@ -280,23 +188,12 @@ class NBEATSPredictor:
         y_true: np.ndarray,
         y_pred: np.ndarray
     ) -> Dict[str, float]:
-        """
-        Evaluate predictions using standard metrics.
-        
-        Args:
-            y_true: Actual values (log returns or prices)
-            y_pred: Predicted values
-        
-        Returns:
-            Dictionary with MAE, RMSE, and Directional Accuracy
-        """
         y_true = np.asarray(y_true).flatten()
         y_pred = np.asarray(y_pred).flatten()
         
         mae = float(np.mean(np.abs(y_true - y_pred)))
         rmse = float(np.sqrt(np.mean((y_true - y_pred) ** 2)))
         
-        # Directional accuracy
         if len(y_true) > 1:
             true_direction = np.sign(np.diff(y_true, prepend=y_true[0]))
             pred_direction = np.sign(np.diff(y_pred, prepend=y_pred[0]))
@@ -310,24 +207,40 @@ class NBEATSPredictor:
             'directional_accuracy': dir_acc
         }
     
-    def save(self, path: Union[str, Path]) -> None:
-        """
-        Save the trained model.
+    @staticmethod
+    def evaluate_log_return(
+        y_true: np.ndarray,
+        y_pred: np.ndarray
+    ) -> Dict[str, float]:
+        y_true = np.asarray(y_true).flatten()
+        y_pred = np.asarray(y_pred).flatten()
         
-        Args:
-            path: Directory path to save the model
-        """
+        y_true_returns = np.diff(np.log(y_true + 1e-8))
+        y_pred_returns = np.diff(np.log(y_pred + 1e-8))
+        
+        mae = float(np.mean(np.abs(y_true_returns - y_pred_returns)))
+        rmse = float(np.sqrt(np.mean((y_true_returns - y_pred_returns) ** 2)))
+        
+        y_true_dir = np.sign(y_true_returns)
+        y_pred_dir = np.sign(y_pred_returns)
+        dir_acc = float(np.mean(y_true_dir == y_pred_dir))
+        
+        return {
+            'mae': mae,
+            'rmse': rmse,
+            'directional_accuracy': dir_acc
+        }
+    
+    def save(self, path: Union[str, Path]) -> None:
         if not self._is_fitted:
             raise ValueError("Cannot save untrained model")
         
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
         
-        # Save NeuralForecast model
         nf = self._model.neural_forecast
         nf.save(path=str(path), model_index=None, overwrite=True, save_dataset=True)
         
-        # Save hyperparameters
         params = {
             'horizon': self.horizon,
             'input_size': self.input_size,
@@ -343,15 +256,6 @@ class NBEATSPredictor:
     
     @classmethod
     def load(cls, path: Union[str, Path]) -> 'NBEATSPredictor':
-        """
-        Load a trained model.
-        
-        Args:
-            path: Directory path containing the saved model
-        
-        Returns:
-            Loaded NBEATSPredictor instance
-        """
         try:
             from neuralforecast import NeuralForecast
         except ImportError:
@@ -359,14 +263,11 @@ class NBEATSPredictor:
         
         path = Path(path)
         
-        # Load hyperparameters
         with open(path / 'params.json', 'r') as f:
             params = json.load(f)
         
-        # Create instance with saved parameters
         predictor = cls(**params)
         
-        # Initialize model and load NeuralForecast
         predictor._model = NBEATSModel(**params)
         predictor._model._nf = NeuralForecast.load(path=str(path))
         predictor._model._is_initialized = True

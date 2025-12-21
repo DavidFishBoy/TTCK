@@ -1,11 +1,4 @@
 # train_nbeats.py
-"""
-Standalone N-BEATS training script.
-Run this separately from main.py to avoid TensorFlow/PyTorch DLL conflicts.
-
-Usage:
-    python train_nbeats.py --config configs/config.yaml
-"""
 
 import argparse
 import json
@@ -16,13 +9,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# ============================================================
-# WORKAROUND: Pre-load c10.dll to fix WinError 1114 on Windows
-# ============================================================
 import ctypes
 if sys.platform == 'win32':
     try:
-        # Find torch installation path
         import site
         for site_path in site.getsitepackages():
             c10_path = Path(site_path) / 'torch' / 'lib' / 'c10.dll'
@@ -30,13 +19,11 @@ if sys.platform == 'win32':
                 ctypes.CDLL(str(c10_path))
                 break
     except Exception:
-        pass  # If preload fails, continue anyway
-# ============================================================
+        pass  
 
 import numpy as np
 import pandas as pd
 
-# Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -59,7 +46,6 @@ def load_existing_data(config: dict) -> Dict[str, pd.DataFrame]:
     
     data = {}
     for coin in coins:
-        # Look for today's data or most recent data
         binance_file = raw_data_dir / f"{coin}_binance_{today_str}.csv"
         
         if binance_file.exists():
@@ -67,7 +53,6 @@ def load_existing_data(config: dict) -> Dict[str, pd.DataFrame]:
             data[coin] = df
             logger.info(f"Loaded data for {coin}: {len(df)} rows")
         else:
-            # Try to find any recent binance file
             pattern = f"{coin}_binance_*.csv"
             files = list(raw_data_dir.glob(pattern))
             if files:
@@ -82,7 +67,7 @@ def load_existing_data(config: dict) -> Dict[str, pd.DataFrame]:
 
 
 def prepare_long_format(data_dict: Dict[str, pd.DataFrame], target_col: str = "close") -> pd.DataFrame:
-    """Convert per-coin DataFrames to NeuralForecast long format."""
+
     all_dfs = []
     
     for coin_name, df in data_dict.items():
@@ -92,7 +77,6 @@ def prepare_long_format(data_dict: Dict[str, pd.DataFrame], target_col: str = "c
         
         coin_df = df.copy()
         
-        # Handle timestamp
         if 'timestamp' in coin_df.columns:
             coin_df['ds'] = pd.to_datetime(coin_df['timestamp'])
         elif coin_df.index.name == 'timestamp' or isinstance(coin_df.index, pd.DatetimeIndex):
@@ -106,7 +90,6 @@ def prepare_long_format(data_dict: Dict[str, pd.DataFrame], target_col: str = "c
                 logger.error(f"No timestamp column found for {coin_name}")
                 continue
         
-        # Calculate log returns
         if target_col not in coin_df.columns:
             logger.error(f"Column '{target_col}' not found in {coin_name}")
             continue
@@ -115,7 +98,6 @@ def prepare_long_format(data_dict: Dict[str, pd.DataFrame], target_col: str = "c
         coin_df['y'] = coin_df['log_price'].diff()
         coin_df = coin_df.dropna(subset=['y'])
         
-        # Create unique_id
         coin_symbol = coin_name.upper()[:3] if len(coin_name) > 3 else coin_name.upper()
         
         long_df = pd.DataFrame({
@@ -165,16 +147,13 @@ def train_nbeats(config: dict, df_long: pd.DataFrame) -> dict:
     training_time = (datetime.now() - start_time).total_seconds()
     logger.info(f"Training completed in {training_time:.2f}s")
     
-    # Generate predictions
     predictions = nf.predict()
     logger.info(f"Generated {len(predictions)} predictions")
     
-    # Save model
     model_dir = Path(config['paths']['models_dir']) / "nbeats"
     model_dir.mkdir(parents=True, exist_ok=True)
     nf.save(path=str(model_dir), model_index=None, overwrite=True, save_dataset=True)
     
-    # Save params
     params = {
         'horizon': nbeats_config.get('horizon', 5),
         'input_size': nbeats_config.get('input_size', 90),
@@ -209,7 +188,6 @@ def main():
     logger.info("N-BEATS Standalone Training Script")
     logger.info("=" * 50)
     
-    # Load config
     config = load_config(args.config)
     
     nbeats_config = config.get('nbeats', {})
@@ -217,7 +195,6 @@ def main():
         logger.info("N-BEATS is disabled in config")
         return
     
-    # Load data
     logger.info("Loading data...")
     data = load_existing_data(config)
     
@@ -225,15 +202,12 @@ def main():
         logger.error("No data found. Please run data collection first.")
         sys.exit(1)
     
-    # Prepare long format
     logger.info("Preparing data...")
     df_long = prepare_long_format(data)
     
-    # Train
     logger.info("Training N-BEATS model...")
     results = train_nbeats(config, df_long)
     
-    # Save results
     results_dir = Path(config['paths']['results_dir']) / "nbeats"
     results_dir.mkdir(parents=True, exist_ok=True)
     

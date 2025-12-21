@@ -7,30 +7,9 @@ import numpy as np
 from datetime import datetime
 
 class RAGCryptoAssistant:
-    """
-    AI Assistant sử dụng RAG (Retrieval-Augmented Generation) 
-    để phân tích và tư vấn đầu tư cryptocurrency
-    """
     
     def __init__(self, api_key: Optional[str] = None, data_dir: str = "data/raw", 
                  model: str = "gpt-4", predictions_dir: str = "results/predictions"):
-        """
-        Khởi tạo RAG Assistant
-        
-        Args:
-            api_key: OpenAI API key (nếu None sẽ tự động lấy từ OPENAI_API_KEY environment variable)
-            data_dir: Thư mục chứa dữ liệu lịch sử
-            model: Tên model OpenAI (gpt-4, gpt-3.5-turbo, etc.)
-            predictions_dir: Thư mục chứa dự đoán tương lai
-        
-        Examples:
-            # Cách 1: Truyền trực tiếp API key
-            assistant = RAGCryptoAssistant(api_key="sk-proj-xxxxx")
-            
-            # Cách 2: Tự động lấy từ biến môi trường
-            assistant = RAGCryptoAssistant()  # Lấy từ OPENAI_API_KEY
-        """
-        # Nếu không truyền api_key, tự động lấy từ environment variable
         if api_key is None:
             api_key = os.getenv("OPENAI_API_KEY")
             if api_key is None:
@@ -47,7 +26,6 @@ class RAGCryptoAssistant:
         self.knowledge_base = {}
         self.predictions_data = {}
         
-        # Import OpenAI
         try:
             import openai
             self.openai = openai
@@ -57,9 +35,6 @@ class RAGCryptoAssistant:
             raise ImportError("Cần cài đặt: pip install openai")
     
     def load_historical_data(self):
-        """
-        Load và index tất cả dữ liệu lịch sử từ CSV files
-        """
         print("Đang load dữ liệu lịch sử...")
         
         train_dir = self.data_dir / "train"
@@ -74,7 +49,6 @@ class RAGCryptoAssistant:
                 df = pd.read_csv(csv_file, index_col=0)
                 df.index = pd.to_datetime(df.index)
                 
-                # Tạo knowledge base cho coin
                 self.knowledge_base[coin_name] = {
                     'data': df,
                     'summary': self._create_summary(df, coin_name),
@@ -88,11 +62,9 @@ class RAGCryptoAssistant:
         
         print(f"\nĐã load {len(self.knowledge_base)} coins")
         
-        # Load predictions data
         self._load_predictions()
     
     def _load_predictions(self):
-        """Load dữ liệu dự đoán từ results/predictions"""
         print("\nĐang load dữ liệu dự đoán...")
         
         if not self.predictions_dir.exists():
@@ -106,7 +78,6 @@ class RAGCryptoAssistant:
                 with open(pred_file, 'r') as f:
                     pred_data = json.load(f)
                 
-                # Parse predictions
                 predictions = pred_data.get('predictions', [])
                 if predictions:
                     self.predictions_data[coin_name] = {
@@ -122,9 +93,7 @@ class RAGCryptoAssistant:
         print(f"Đã load predictions cho {len(self.predictions_data)} coins")
     
     def _create_summary(self, df: pd.DataFrame, coin: str) -> str:
-        """Tạo tóm tắt dữ liệu lịch sử"""
         
-        # Phân tích theo tuần
         summaries = []
         for i in range(0, len(df), 7):
             week_data = df.iloc[i:i+7]
@@ -148,10 +117,9 @@ class RAGCryptoAssistant:
             )
             summaries.append(summary)
         
-        return "\n".join(summaries[-20:])  # Giữ 20 tuần gần nhất
+        return "\n".join(summaries[-20:])
     
     def _calculate_statistics(self, df: pd.DataFrame) -> Dict:
-        """Tính toán các chỉ số thống kê"""
         
         return {
             'current_price': float(df['close'].iloc[-1]),
@@ -166,24 +134,12 @@ class RAGCryptoAssistant:
         }
     
     def get_price_by_date(self, coin: str, date_str: str) -> Dict:
-        """
-        Lấy giá của coin theo ngày cụ thể
-        
-        Args:
-            coin: Tên coin
-            date_str: Ngày cần tìm (format: YYYY-MM-DD hoặc DD/MM/YYYY)
-            
-        Returns:
-            Dictionary chứa thông tin giá hoặc error message
-        """
         if coin not in self.knowledge_base:
             return {"error": f"Không có dữ liệu cho {coin}"}
         
         df = self.knowledge_base[coin]['data']
         
-        # Parse date string
         try:
-            # Thử parse nhiều format
             for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d']:
                 try:
                     target_date = pd.to_datetime(date_str, format=fmt)
@@ -193,10 +149,8 @@ class RAGCryptoAssistant:
             else:
                 return {"error": f"Không thể parse ngày '{date_str}'. Dùng format YYYY-MM-DD hoặc DD/MM/YYYY"}
             
-            # Tìm ngày gần nhất
             target_date_str = target_date.strftime('%Y-%m-%d')
             
-            # Tìm exact match hoặc ngày gần nhất
             if target_date in df.index:
                 row = df.loc[target_date]
                 return {
@@ -208,12 +162,10 @@ class RAGCryptoAssistant:
                     "volume": float(row['volume'])
                 }
             else:
-                # Tìm ngày gần nhất
                 idx = df.index.searchsorted(target_date)
                 if idx >= len(df):
                     idx = len(df) - 1
                 elif idx > 0:
-                    # Chọn ngày gần nhất
                     if abs(df.index[idx] - target_date) > abs(df.index[idx-1] - target_date):
                         idx = idx - 1
                 
@@ -235,9 +187,6 @@ class RAGCryptoAssistant:
             return {"error": f"Lỗi: {str(e)}"}
     
     def _retrieve_context(self, coin: str, query: str = "") -> str:
-        """
-        Retrieve relevant context từ knowledge base
-        """
         if coin not in self.knowledge_base:
             return f"Không có dữ liệu cho {coin}"
         
@@ -245,7 +194,6 @@ class RAGCryptoAssistant:
         stats = kb['statistics']
         df = kb['data']
         
-        # Lấy thông tin phạm vi dữ liệu
         first_date = df.index[0].strftime('%Y-%m-%d')
         last_date = df.index[-1].strftime('%Y-%m-%d')
         total_days = len(df)
@@ -267,7 +215,6 @@ Lịch sử giao dịch (20 tuần gần nhất):
 {kb['summary']}
 """
         
-        # Thêm dữ liệu dự đoán nếu có
         if coin in self.predictions_data:
             pred = self.predictions_data[coin]
             predictions = pred['predictions']
@@ -305,25 +252,11 @@ Phân tích dự đoán:
     
     def get_investment_advice(self, coin: str, current_price: float, 
                              predictions: List[float]) -> str:
-        """
-        Lấy lời khuyên đầu tư từ AI dựa trên context
-        
-        Args:
-            coin: Tên coin
-            current_price: Giá hiện tại
-            predictions: Dự đoán giá 5 ngày tới
-            
-        Returns:
-            Lời khuyên đầu tư chi tiết
-        """
-        # Retrieve context
         context = self._retrieve_context(coin)
         
-        # Tính toán xu hướng
         trend = "tăng" if predictions[-1] > current_price else "giảm"
         change_percent = ((predictions[-1] - current_price) / current_price) * 100
         
-        # Tạo prompt
         prompt = f"""
 Bạn là chuyên gia tư vấn đầu tư cryptocurrency với 10 năm kinh nghiệm.
 
@@ -336,21 +269,16 @@ Bạn là chuyên gia tư vấn đầu tư cryptocurrency với 10 năm kinh ngh
 
 Hãy phân tích và đưa ra lời khuyên đầu tư chi tiết theo cấu trúc sau:
 
-## 📊 PHÂN TÍCH XU HƯỚNG
 (Phân tích xu hướng ngắn hạn dựa trên dự đoán và lịch sử)
 
-## ⚠️ MỨC ĐỘ RỦI RO
 (Đánh giá rủi ro: Thấp/Trung bình/Cao và lý do)
 
-## 💡 KHUYẾN NGHỊ
 (MUA/BÁN/GIỮ và giải thích chi tiết)
 
-## 🎯 CHIẾN LƯỢC GIAO DỊCH
 - Điểm vào lệnh: (mức giá nên mua nếu khuyến nghị mua)
 - Mức cắt lỗ (Stop Loss): (mức giá nên bán để giảm thiểu thua lỗ)
 - Mức chốt lời (Take Profit): (mức giá nên bán để chốt lời)
 
-## 📝 LƯU Ý
 (Các lưu ý quan trọng cho nhà đầu tư)
 
 Trả lời bằng tiếng Việt, ngắn gọn, súc tích.
@@ -380,23 +308,11 @@ Trả lời bằng tiếng Việt, ngắn gọn, súc tích.
     
     def chat(self, coin: str, user_message: str, 
              conversation_history: Optional[List[Dict]] = None) -> str:
-        """
-        Chat với AI Assistant về một coin cụ thể
-        
-        Args:
-            coin: Tên coin đang phân tích
-            user_message: Câu hỏi của user
-            conversation_history: Lịch sử chat (optional)
-            
-        Returns:
-            Câu trả lời từ AI
-        """
-        # Kiểm tra xem user có hỏi về ngày cụ thể không
         import re
         date_patterns = [
-            r'\d{2}/\d{2}/\d{4}',  # DD/MM/YYYY
-            r'\d{4}-\d{2}-\d{2}',  # YYYY-MM-DD
-            r'\d{4}/\d{2}/\d{2}',  # YYYY/MM/DD
+            r'\d{2}/\d{2}/\d{4}',
+            r'\d{4}-\d{2}-\d{2}',
+            r'\d{4}/\d{2}/\d{2}',
         ]
         
         found_date = None
@@ -406,7 +322,6 @@ Trả lời bằng tiếng Việt, ngắn gọn, súc tích.
                 found_date = match.group()
                 break
         
-        # Nếu hỏi về ngày cụ thể, lấy giá từ dữ liệu
         price_info = ""
         if found_date and coin in self.knowledge_base:
             price_data = self.get_price_by_date(coin, found_date)
@@ -434,15 +349,12 @@ Ngày gần nhất có dữ liệu: {price_data['nearest_date']}
 - Volume: {price_data['volume']:.0f}
 """
         
-        # Retrieve context
         context = self._retrieve_context(coin)
         
-        # Lấy thêm dữ liệu chi tiết gần nhất
         if coin in self.knowledge_base:
             df = self.knowledge_base[coin]['data']
             latest_date = df.index[-1].strftime('%Y-%m-%d')
             
-            # Lấy 10 ngày gần nhất với giá cụ thể
             recent_data = df.tail(10)
             recent_prices = "\n".join([
                 f"- {date.strftime('%Y-%m-%d')}: Open=${row['open']:.2f}, Close=${row['close']:.2f}, High=${row['high']:.2f}, Low=${row['low']:.2f}"
@@ -459,7 +371,6 @@ Ngày gần nhất có dữ liệu: {price_data['nearest_date']}
 {price_info}
 """
         
-        # Tạo system message với context
         system_message = f"""
 Bạn là trợ lý AI chuyên về đầu tư cryptocurrency.
 
@@ -480,7 +391,6 @@ Nhiệm vụ:
 - Luôn nêu rõ mức độ rủi ro và nhắc nhở đây chỉ là dự đoán, không phải lời khuyên tài chính chắc chắn
 """
         
-        # Tạo messages
         messages = [{"role": "system", "content": system_message}]
         
         if conversation_history:
@@ -502,19 +412,12 @@ Nhiệm vụ:
             return f"❌ Lỗi: {str(e)}"
     
     def get_coin_analysis(self, coin: str) -> Dict:
-        """
-        Lấy phân tích tổng quan về một coin
-        
-        Returns:
-            Dictionary chứa thông tin phân tích
-        """
         if coin not in self.knowledge_base:
             return {"error": f"Không có dữ liệu cho {coin}"}
         
         stats = self.knowledge_base[coin]['statistics']
         df = self.knowledge_base[coin]['data']
         
-        # Tính toán thêm chỉ số
         last_7days = df['close'][-7:]
         last_30days = df['close'][-30:]
         
@@ -536,15 +439,6 @@ Nhiệm vụ:
         }
     
     def compare_coins(self, coins: List[str]) -> str:
-        """
-        So sánh nhiều coins
-        
-        Args:
-            coins: List các coin cần so sánh
-            
-        Returns:
-            Phân tích so sánh
-        """
         comparisons = []
         
         for coin in coins:
@@ -560,7 +454,6 @@ Nhiệm vụ:
         if not comparisons:
             return "Không có dữ liệu để so sánh"
         
-        # Sắp xếp theo performance
         comparisons.sort(key=lambda x: x['change_30d'], reverse=True)
         
         prompt = f"""

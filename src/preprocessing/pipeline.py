@@ -1,4 +1,3 @@
-"""Data preprocessing pipeline: feature engineering, scaling, sequence preparation."""
 import logging
 from pathlib import Path
 from typing import Dict, Tuple, Union, Optional
@@ -12,14 +11,6 @@ from .feature_engineering import FeatureEngineer
 from src.utils.config import Config
 
 class Pipeline:
-    """
-    The Pipeline class handles:
-    - Data validation and cleaning
-    - Feature engineering
-    - Normalization/scaling of non-target features and the target (close) separately
-    - For training: splitting data and preparing sequences (X, Y).
-    - For prediction: returning only the last sequence_length rows scaled for input.
-    """
 
     def __init__(
         self,
@@ -97,7 +88,6 @@ class Pipeline:
             raise ValueError(f"Unsupported scaler type: {scaler_type}")
 
     def _update_numeric_features(self, df: pd.DataFrame):
-        # Exclude 'close' from numeric_features to ensure it's only scaled by target_scaler
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
         self.numeric_features = [col for col in numeric_cols if col != 'close']
         self.logger.info(f"Numeric features identified (excluding close): {self.numeric_features}")
@@ -136,12 +126,10 @@ class Pipeline:
                 self.logger.info("Applying log1p transformation to volume.")
                 df_scaled['volume'] = np.log1p(df_scaled['volume'])
 
-        # Scale numeric features (excluding 'close')
         if self.numeric_features:
             self.logger.info("Fitting scaler on numeric features.")
             df_scaled[self.numeric_features] = self.scaler.fit_transform(df_scaled[self.numeric_features])
 
-        # Scale target close separately
         if 'close' in df_scaled.columns:
             self.logger.info("Fitting scaler on target ('close').")
             df_scaled['close'] = self.target_scaler.fit_transform(df_scaled[['close']]).flatten()
@@ -170,13 +158,11 @@ class Pipeline:
                 self.logger.info("Applying log1p transform to volume.")
                 df_scaled['volume'] = np.log1p(df_scaled['volume'])
 
-        # Temporarily remove close for feature scaling
         close_col = None
         if 'close' in df_scaled.columns:
             close_col = df_scaled['close'].copy()
             df_scaled.drop(columns=['close'], inplace=True, errors='ignore')
 
-        # Ensure only known numeric_features remain
         all_current_numeric = df_scaled.select_dtypes(include=[np.number]).columns.tolist()
         current_set = set(all_current_numeric)
         expected_set = set(self.numeric_features)
@@ -194,7 +180,6 @@ class Pipeline:
         df_scaled = df_scaled.reindex(columns=self.numeric_features, fill_value=0.0)
         df_scaled[self.numeric_features] = self.scaler.transform(df_scaled[self.numeric_features])
 
-        # Re-add close using target_scaler if it existed
         if close_col is not None:
             close_scaled = self.target_scaler.transform(close_col.to_frame()).flatten()
             df_scaled['close'] = close_scaled
@@ -207,7 +192,6 @@ class Pipeline:
         self.validate_data(df)
         df_features = self.create_features(df)
 
-        # Remove bfill - only forward fill to prevent data leakage
         if df_features.isnull().values.any():
             initial_rows = len(df_features)
             self.logger.warning("Missing values detected, applying forward fill only (no bfill).")
@@ -231,13 +215,10 @@ class Pipeline:
             if len(df_normalized) < self.sequence_length + self.prediction_length:
                 raise ValueError(f"Not enough data: need {self.sequence_length + self.prediction_length}, got {len(df_normalized)}")
 
-            # Get last sequence for input
             last_seq = df_normalized.iloc[-self.sequence_length:]
-            # Remove 'close' column - it will be in features during training but not needed for X
             last_seq_features = last_seq.drop(columns=['close'], errors='ignore')
             X = np.expand_dims(last_seq_features.values, axis=0)
             
-            # Store last known price for inverse transform
             last_price = df_features['close'].iloc[-1]
             return {'X': X, 'last_price': last_price}
 
@@ -276,22 +257,10 @@ class Pipeline:
         return result
 
     def prepare_sequences(self, df_normalized: pd.DataFrame, df_original: pd.DataFrame) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Create sequences for multi-horizon return forecasting.
-        
-        Args:
-            df_normalized: Normalized dataframe with all features including 'close'
-            df_original: Original dataframe (before normalization) to get actual prices
-        
-        Returns:
-            X: shape (N, sequence_length, features) - input sequences (without 'close')
-            Y: shape (N, forecast_horizon) - target log returns for next 5 days
-            last_prices: shape (N,) - last known price for each sequence (for inverse transform)
-        """
         if df_normalized.empty or df_original.empty:
             raise ValueError("Empty DataFrame, cannot prepare sequences.")
         
-        forecast_horizon = self.prediction_length  # Should be 5 from config
+        forecast_horizon = self.prediction_length
         min_length = self.sequence_length + forecast_horizon
         
         if len(df_normalized) < min_length:
@@ -301,25 +270,20 @@ class Pipeline:
         max_start_idx = len(df_original) - self.sequence_length - forecast_horizon + 1
         
         for i in range(max_start_idx):
-            # Input sequence: all features EXCEPT close (close is target, not feature)
             seq = df_normalized.iloc[i:i + self.sequence_length]
             seq_features = seq.drop(columns=['close'], errors='ignore')
             X.append(seq_features.values)
             
-            # Get original prices for return calculation
             target_start = i + self.sequence_length
             target_end = target_start + forecast_horizon
             
-            # Calculate log returns for next 5 days
             prices = df_original.iloc[target_start - 1:target_end]['close'].values
             if len(prices) != forecast_horizon + 1:
-                continue  # Skip if not enough future data
+                continue
             
-            # Log returns: log(price_t / price_{t-1})
             log_returns = np.log(prices[1:] / prices[0])
             Y.append(log_returns)
             
-            # Store last known price (for converting predictions back to prices)
             last_prices.append(prices[0])
         
         X = np.array(X)
@@ -380,16 +344,6 @@ class Pipeline:
         self.logger.info(f"Loaded scalers from {scaler_path} and {target_scaler_path}")
 
     def inverse_transform_predictions(self, returns: np.ndarray, last_prices: np.ndarray) -> np.ndarray:
-        """
-        Convert predicted log returns back to actual prices.
-        
-        Args:
-            returns: shape (N, horizon) or (horizon,) - predicted log returns
-            last_prices: shape (N,) or scalar - last known price(s) before forecast
-        
-        Returns:
-            Predicted prices, shape (N, horizon) or (horizon,)
-        """
         single_prediction = False
         if returns.ndim == 1:
             returns = returns.reshape(1, -1)
@@ -398,29 +352,18 @@ class Pipeline:
         if np.isscalar(last_prices):
             last_prices = np.array([last_prices])
         
-        # Convert log returns to prices: price_t = price_0 * exp(sum of returns up to t)
         prices_list = []
         for i, (ret_seq, last_price) in enumerate(zip(returns, last_prices)):
             prices = [last_price]
             for r in ret_seq:
                 next_price = prices[-1] * np.exp(r)
                 prices.append(next_price)
-            prices_list.append(prices[1:])  # Exclude the initial price
+            prices_list.append(prices[1:])
         
         result = np.array(prices_list)
         return result[0] if single_prediction else result
 
     def inverse_transform_actuals(self, y: np.ndarray, last_prices: np.ndarray) -> np.ndarray:
-        """
-        Convert actual log returns back to prices for evaluation.
-        
-        Args:
-            y: shape (N, horizon) - actual log returns
-            last_prices: shape (N,) - last known prices
-        
-        Returns:
-            Actual prices, shape (N, horizon)
-        """
         return self.inverse_transform_predictions(y, last_prices)
 
     def save(self, path: Union[str, Path]):

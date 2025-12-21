@@ -1,9 +1,4 @@
-# src/training/baseline_models.py
 
-"""
-Baseline models for benchmarking.
-These models don't require training - they use simple rules.
-"""
 
 import numpy as np
 import logging
@@ -11,40 +6,22 @@ from typing import Dict
 
 logger = logging.getLogger(__name__)
 
-
 class NaiveModel:
-    """
-    Naive persistence model.
-    Predicts tomorrow's price = today's price.
-    """
     
     def __init__(self):
         self.name = "Naive"
         logger.info("Initialized Naive baseline model")
     
     def predict(self, X: np.ndarray, close_idx: int = -1) -> np.ndarray:
-        """
-        Predict using last known price.
-        
-        Args:
-            X: Input sequences of shape (samples, timesteps, features)
-            close_idx: Index of close price in features dimension
-        
-        Returns:
-            Predictions array of shape (samples,)
-        """
-        # Use the last timestep's close price as prediction
         predictions = X[:, -1, close_idx]
         logger.info(f"Naive model generated {len(predictions)} predictions")
         return predictions
     
     @staticmethod
     def evaluate(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
-        """Calculate evaluation metrics."""
         mae = np.mean(np.abs(y_true - y_pred))
         rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
         
-        # Directional accuracy
         y_true_direction = np.sign(np.diff(y_true, prepend=y_true[0]))
         y_pred_direction = np.sign(np.diff(y_pred, prepend=y_pred[0]))
         dir_acc = np.mean(y_true_direction == y_pred_direction)
@@ -54,82 +31,81 @@ class NaiveModel:
             'rmse': float(rmse),
             'directional_accuracy': float(dir_acc)
         }
-
+    
+    @staticmethod
+    def evaluate_log_return(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+        y_true_returns = np.diff(np.log(y_true + 1e-8))
+        y_pred_returns = np.diff(np.log(y_pred + 1e-8))
+        
+        mae = np.mean(np.abs(y_true_returns - y_pred_returns))
+        rmse = np.sqrt(np.mean((y_true_returns - y_pred_returns) ** 2))
+        
+        y_true_dir = np.sign(y_true_returns)
+        y_pred_dir = np.sign(y_pred_returns)
+        dir_acc = np.mean(y_true_dir == y_pred_dir)
+        
+        return {
+            'mae': float(mae),
+            'rmse': float(rmse),
+            'directional_accuracy': float(dir_acc)
+        }
 
 class MovingAverageModel:
-    """
-    Moving Average model.
-    Predicts using simple moving average of recent prices.
-    """
     
     def __init__(self, window: int = 5):
-        """
-        Args:
-            window: Number of recent prices to average
-        """
         self.window = window
         self.name = f"MA({window})"
         logger.info(f"Initialized Moving Average baseline model (window={window})")
     
     def predict(self, X: np.ndarray, close_idx: int = -1) -> np.ndarray:
-        """
-        Predict using moving average of last `window` prices.
-        
-        Args:
-            X: Input sequences of shape (samples, timesteps, features)
-            close_idx: Index of close price in features dimension
-        
-        Returns:
-            Predictions array of shape (samples,)
-        """
-        # Get the last `window` close prices for each sample
         recent_prices = X[:, -self.window:, close_idx]
         
-        # Calculate mean
         predictions = np.mean(recent_prices, axis=1)
         
         logger.info(f"MA({self.window}) generated {len(predictions)} predictions")
         return predictions
     
+    def predict_log_return_future(self, prices: np.ndarray, horizon: int = 5) -> np.ndarray:
+        log_returns = np.diff(np.log(prices + 1e-8))
+        
+        predicted_return = np.mean(log_returns[-self.window:])
+        
+        return np.full(horizon, predicted_return)
+    
+    def predict_future_prices(self, prices: np.ndarray, horizon: int = 5) -> np.ndarray:
+        predicted_returns = self.predict_log_return_future(prices, horizon)
+        last_price = prices[-1]
+        
+        future_prices = []
+        current_log_price = np.log(last_price)
+        
+        for r in predicted_returns:
+            current_log_price += r
+            future_prices.append(np.exp(current_log_price))
+        
+        return np.array(future_prices)
+    
     @staticmethod
     def evaluate(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
-        """Calculate evaluation metrics."""
         return NaiveModel.evaluate(y_true, y_pred)
-
+    
+    @staticmethod
+    def evaluate_log_return(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+        return NaiveModel.evaluate_log_return(y_true, y_pred)
 
 class ExponentialMovingAverageModel:
-    """
-    Exponential Moving Average model.
-    Gives more weight to recent prices.
-    """
     
     def __init__(self, alpha: float = 0.3):
-        """
-        Args:
-            alpha: Smoothing factor (0 < alpha <= 1)
-                  Higher alpha = more weight on recent values
-        """
         self.alpha = alpha
         self.name = f"EMA(α={alpha})"
         logger.info(f"Initialized EMA baseline model (alpha={alpha})")
     
     def predict(self, X: np.ndarray, close_idx: int = -1) -> np.ndarray:
-        """
-        Predict using exponential moving average.
-        
-        Args:
-            X: Input sequences of shape (samples, timesteps, features)
-            close_idx: Index of close price in features dimension
-        
-        Returns:
-            Predictions array of shape (samples,)
-        """
         predictions = []
         
         for sample in X:
             prices = sample[:, close_idx]
             
-            # Calculate EMA
             ema = prices[0]
             for price in prices[1:]:
                 ema = self.alpha * price + (1 - self.alpha) * ema
@@ -140,14 +116,37 @@ class ExponentialMovingAverageModel:
         logger.info(f"EMA generated {len(predictions)} predictions")
         return predictions
     
+    def predict_log_return_future(self, prices: np.ndarray, horizon: int = 5) -> np.ndarray:
+        log_returns = np.diff(np.log(prices + 1e-8))
+        
+        ema = log_returns[0]
+        for r in log_returns[1:]:
+            ema = self.alpha * r + (1 - self.alpha) * ema
+        
+        return np.full(horizon, ema)
+    
+    def predict_future_prices(self, prices: np.ndarray, horizon: int = 5) -> np.ndarray:
+        predicted_returns = self.predict_log_return_future(prices, horizon)
+        last_price = prices[-1]
+        
+        future_prices = []
+        current_log_price = np.log(last_price)
+        
+        for r in predicted_returns:
+            current_log_price += r
+            future_prices.append(np.exp(current_log_price))
+        
+        return np.array(future_prices)
+    
     @staticmethod
     def evaluate(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
-        """Calculate evaluation metrics."""
         return NaiveModel.evaluate(y_true, y_pred)
-
+    
+    @staticmethod
+    def evaluate_log_return(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+        return NaiveModel.evaluate_log_return(y_true, y_pred)
 
 def get_all_baseline_models():
-    """Get all baseline models for comparison."""
     return [
         NaiveModel(),
         MovingAverageModel(window=5),

@@ -1,20 +1,4 @@
-# src/training/models/lstm_model.py
 
-"""
-Advanced LSTM Model for Cryptocurrency Price Prediction
-
-State-of-the-art deep learning model with:
-- Bidirectional LSTM layers for temporal pattern recognition
-- Multi-head attention mechanism for feature importance
-- CNN layers for local feature extraction  
-- Residual connections for better gradient flow
-- Layer normalization for training stability
-- Monte Carlo dropout for uncertainty estimation
-- Direction-integrated loss for trend prediction
-
-Architecture follows best practices from the reference pipeline:
-https://github.com/MatNuCuoii/CryptoCurrency
-"""
 
 import logging
 from typing import List, Tuple, Optional, Callable, Union, Dict
@@ -34,19 +18,7 @@ import json
 
 from src.utils.custom_losses import di_mse_loss, directional_accuracy
 
-
 class LSTMModel:
-    """
-    Advanced LSTM-based cryptocurrency price prediction model.
-    
-    Implements state-of-the-art architecture with:
-    - Bidirectional LSTM for temporal patterns
-    - Multi-head attention for feature importance
-    - CNN layers for local feature extraction
-    - Residual connections for deeper networks
-    - Layer normalization for stability
-    - Monte Carlo dropout for uncertainty
-    """
     
     def __init__(
         self,
@@ -64,27 +36,8 @@ class LSTMModel:
         use_residual: bool = True,
         mc_dropout: bool = False,
     ):
-        """
-        Initialize advanced LSTM model.
-        
-        Args:
-            input_shape: (sequence_length, n_features)
-            lstm_units: LSTM units per layer (default: [128, 64])
-            dropout_rate: Dropout rate (default: 0.3)
-            dense_units: Dense units per layer (default: [64, 32])
-            learning_rate: Initial learning rate (default: 0.001)
-            clip_norm: Gradient clipping norm (default: 1.0)
-            l2_reg: L2 regularization factor (default: 1e-5)
-            use_attention: Enable multi-head attention (default: True)
-            attention_heads: Number of attention heads (default: 4)
-            use_cnn: Enable CNN feature extraction (default: True)
-            cnn_filters: CNN filter sizes (default: [64, 32])
-            use_residual: Enable residual connections (default: True)
-            mc_dropout: Enable Monte Carlo dropout (default: False)
-        """
         self.logger = self._setup_logger()
         
-        # Core architecture
         self.input_shape = input_shape
         self.lstm_units = lstm_units or [128, 64]
         self.dropout_rate = dropout_rate
@@ -93,7 +46,6 @@ class LSTMModel:
         self.clip_norm = clip_norm
         self.l2_reg = l2_reg
         
-        # Advanced features
         self.use_attention = use_attention
         self.attention_heads = attention_heads
         self.use_cnn = use_cnn
@@ -113,7 +65,6 @@ class LSTMModel:
     
     @staticmethod
     def _setup_logger() -> logging.Logger:
-        """Setup logger for the model"""
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.INFO)
         if not logger.handlers:
@@ -124,22 +75,11 @@ class LSTMModel:
         return logger
     
     def build(self) -> None:
-        """
-        Build advanced LSTM architecture.
-        
-        Architecture:
-        1. CNN branch for local feature extraction (optional)
-        2. Bidirectional LSTM layers with layer norm
-        3. Multi-head attention mechanism (optional)
-        4. Dense layers with residual connections (optional)
-        5. Final prediction layer
-        """
         self.logger.info("Building advanced LSTM architecture...")
         
         inputs = Input(shape=self.input_shape, name="input")
         x = inputs
         
-        # Branch 1: CNN for local feature extraction
         if self.use_cnn:
             cnn_branch = x
             for i, filters in enumerate(self.cnn_filters):
@@ -158,13 +98,10 @@ class LSTMModel:
                 )(cnn_branch, training=self.mc_dropout)
             x = cnn_branch
         
-        # Branch 2: Bidirectional LSTM with residual connections
         lstm_output = x
         for i, units in enumerate(self.lstm_units):
-            # Always return sequences for attention
             return_sequences = True
             
-            # Bidirectional LSTM
             lstm_layer = Bidirectional(
                 LSTM(
                     units, 
@@ -174,10 +111,8 @@ class LSTMModel:
                 name=f"bi_lstm_{i+1}"
             )(lstm_output)
             
-            # Layer normalization
             lstm_layer = LayerNormalization(name=f"ln_lstm_{i+1}")(lstm_layer)
             
-            # Residual connection (if enabled and dimensions match)
             if self.use_residual and i > 0:
                 if lstm_output.shape[-1] == lstm_layer.shape[-1]:
                     lstm_output = Add(name=f"residual_{i+1}")([lstm_output, lstm_layer])
@@ -186,15 +121,12 @@ class LSTMModel:
             else:
                 lstm_output = lstm_layer
             
-            # Dropout
             lstm_output = Dropout(
                 self.dropout_rate,
                 name=f"dropout_lstm_{i+1}"
             )(lstm_output, training=self.mc_dropout)
         
-        # Multi-head attention
         if self.use_attention:
-            # Self-attention mechanism
             attention_output = MultiHeadAttention(
                 num_heads=self.attention_heads,
                 key_dim=lstm_output.shape[-1] // self.attention_heads,
@@ -202,17 +134,13 @@ class LSTMModel:
                 name="multi_head_attention"
             )(lstm_output, lstm_output)
             
-            # Residual + layer norm
             attention_output = Add(name="attention_residual")([lstm_output, attention_output])
             attention_output = LayerNormalization(name="ln_attention")(attention_output)
             
-            # Global average pooling
             pooled = GlobalAveragePooling1D(name="global_avg_pool")(attention_output)
         else:
-            # Use last timestep
             pooled = lstm_output[:, -1, :]
         
-        # Dense layers with residual connections
         dense_output = pooled
         for i, units in enumerate(self.dense_units):
             dense_layer = Dense(
@@ -223,7 +151,6 @@ class LSTMModel:
             )(dense_output)
             dense_layer = LayerNormalization(name=f"ln_dense_{i+1}")(dense_layer)
             
-            # Residual if dimensions match
             if self.use_residual and dense_output.shape[-1] == units:
                 dense_output = Add(name=f"dense_residual_{i+1}")([dense_output, dense_layer])
             else:
@@ -234,10 +161,8 @@ class LSTMModel:
                 name=f"dropout_dense_{i+1}"
             )(dense_output, training=self.mc_dropout)
         
-        # Output layer (single price prediction)
         output = Dense(1, name="price_prediction")(dense_output)
         
-        # Create model
         self.model = Model(inputs, output, name="Advanced_LSTM_Predictor")
         
         self.logger.info("✓ Advanced LSTM built successfully")
@@ -250,17 +175,9 @@ class LSTMModel:
         optimizer: Optional[tf.keras.optimizers.Optimizer] = None,
         loss: Optional[Union[str, Callable]] = None,
     ) -> None:
-        """
-        Compile model with optimizer and loss function.
-        
-        Args:
-            optimizer: Keras optimizer (default: Adam with clipnorm)
-            loss: Loss function (default: di_mse_loss for direction-integrated prediction)
-        """
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
         
-        # Setup optimizer
         if optimizer is None:
             if self.clip_norm:
                 optimizer = Adam(
@@ -272,12 +189,10 @@ class LSTMModel:
             
             self.logger.info(f"Using Adam optimizer: lr={self.learning_rate}, clipnorm={self.clip_norm}")
         
-        # Setup loss
         if loss is None:
             loss = di_mse_loss
             self.logger.info("Using DI-MSE loss (direction-integrated for trend prediction)")
         
-        # Compile model
         self.model.compile(
             optimizer=optimizer,
             loss=loss,
@@ -297,21 +212,6 @@ class LSTMModel:
         callbacks: Optional[List[tf.keras.callbacks.Callback]] = None,
         verbose: int = 1
     ) -> tf.keras.callbacks.History:
-        """
-        Train the model.
-        
-        Args:
-            X_train: Training features (samples, sequence_length, features)
-            y_train: Training targets (samples, 2) - [current_price, prev_price]
-            epochs: Number of epochs
-            batch_size: Batch size
-            validation_data: Optional (X_val, y_val) tuple
-            callbacks: Optional list of callbacks
-            verbose: Verbosity level
-            
-        Returns:
-            Training history
-        """
         if self.model is None or not self.compiled:
             raise ValueError("Model not ready. Build and compile first.")
         
@@ -335,28 +235,14 @@ class LSTMModel:
         verbose: int = 0,
         mc_samples: int = 0
     ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Generate predictions with optional Monte Carlo dropout for uncertainty estimation.
-        
-        Args:
-            X: Input features (samples, sequence_length, features)
-            verbose: Verbosity level
-            mc_samples: Number of MC dropout samples (0 = deterministic, >0 = stochastic)
-            
-        Returns:
-            If mc_samples == 0: predictions array
-            If mc_samples > 0: (mean_predictions, std_predictions) for uncertainty
-        """
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
         
         if mc_samples > 0 and self.mc_dropout:
-            # Monte Carlo dropout for uncertainty estimation
             self.logger.info(f"Generating MC dropout predictions ({mc_samples} samples)...")
             predictions = []
             
             for _ in range(mc_samples):
-                # Enable dropout during inference
                 pred = self.model(X, training=True)
                 predictions.append(pred.numpy())
             
@@ -367,7 +253,6 @@ class LSTMModel:
             self.logger.info(f"MC predictions: mean={mean_pred.mean():.2f}, std={std_pred.mean():.4f}")
             return mean_pred, std_pred
         else:
-            # Standard deterministic prediction
             self.logger.info(f"Generating predictions for {len(X)} samples...")
             predictions = self.model.predict(X, verbose=verbose)
             return predictions
@@ -378,17 +263,6 @@ class LSTMModel:
         y: np.ndarray,
         verbose: int = 0
     ) -> Dict:
-        """
-        Evaluate model on test data.
-        
-        Args:
-            X: Input features
-            y: True labels (samples, 2) - [current_price, prev_price]
-            verbose: Verbosity level
-            
-        Returns:
-            Dict of metrics: {loss, mae, rmse, directional_accuracy}
-        """
         if self.model is None or not self.compiled:
             raise ValueError("Model not ready. Build and compile first.")
         
@@ -408,19 +282,12 @@ class LSTMModel:
         return metrics
     
     def summary(self) -> None:
-        """Print model summary"""
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
         
         self.model.summary()
     
     def save(self, path: Union[str, Path]) -> None:
-        """
-        Save model to file.
-        
-        Args:
-            path: Path to save model (e.g., 'models/lstm/model.keras')
-        """
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
         
@@ -430,7 +297,6 @@ class LSTMModel:
         self.model.save(path)
         self.logger.info(f"✓ Model saved to {path}")
         
-        # Save config for easy loading
         config_path = path.parent / "model_config.json"
         config = {
             "input_shape": self.input_shape,
@@ -455,21 +321,11 @@ class LSTMModel:
     
     @classmethod
     def load(cls, model_path: Union[str, Path]) -> "LSTMModel":
-        """
-        Load saved model.
-        
-        Args:
-            model_path: Path to saved model
-            
-        Returns:
-            LSTMModel instance with loaded weights
-        """
         model_path = Path(model_path)
         
         if not model_path.exists():
             raise FileNotFoundError(f"Model not found: {model_path}")
         
-        # Load Keras model with custom objects
         keras_model = tf.keras.models.load_model(
             model_path,
             custom_objects={
@@ -478,16 +334,13 @@ class LSTMModel:
             }
         )
         
-        # Load config if available
         config_path = model_path.parent / "model_config.json"
         if config_path.exists():
             with open(config_path, 'r') as f:
                 config = json.load(f)
             
-            # Create instance with saved config
             instance = cls(**config)
         else:
-            # Fallback: create with input shape only
             input_shape = keras_model.input_shape[1:]
             instance = cls(input_shape=input_shape)
         
