@@ -1,22 +1,10 @@
-# src/training/model/nbeats_model.py
-"""
-N-BEATS (Neural Basis Expansion Analysis for Time Series) model definition.
-Contains the core model class that wraps NeuralForecast NBEATS.
-"""
 
 import logging
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-
 class NBEATSModel:
-    """
-    N-BEATS model wrapper using NeuralForecast library.
-    
-    This class handles the model initialization and configuration.
-    For full prediction pipeline, use NBEATSPredictor from nbeats_predictor.py
-    """
     
     def __init__(
         self,
@@ -27,17 +15,6 @@ class NBEATSModel:
         num_stacks: int = 3,
         random_seed: int = 42
     ):
-        """
-        Initialize N-BEATS model configuration.
-        
-        Args:
-            horizon: Number of days to forecast (default: 5)
-            input_size: Lookback window size (default: 90)
-            learning_rate: Learning rate for training
-            max_steps: Maximum training steps
-            num_stacks: Number of NBEATS stacks
-            random_seed: Random seed for reproducibility
-        """
         self.horizon = horizon
         self.input_size = input_size
         self.learning_rate = learning_rate
@@ -46,7 +23,7 @@ class NBEATSModel:
         self.random_seed = random_seed
         
         self._model = None
-        self._nf = None  # NeuralForecast wrapper
+        self._nf = None
         self._is_initialized = False
         
         logger.info(
@@ -55,7 +32,6 @@ class NBEATSModel:
         )
     
     def _check_neuralforecast(self):
-        """Check if neuralforecast is installed."""
         try:
             from neuralforecast import NeuralForecast
             from neuralforecast.models import NBEATS
@@ -67,7 +43,6 @@ class NBEATSModel:
             )
     
     def build(self):
-        """Build and initialize the N-BEATS model."""
         self._check_neuralforecast()
         
         from neuralforecast import NeuralForecast
@@ -84,7 +59,7 @@ class NBEATSModel:
         
         self._nf = NeuralForecast(
             models=[self._model],
-            freq='D'  # Daily frequency
+            freq='D'
         )
         
         self._is_initialized = True
@@ -93,21 +68,17 @@ class NBEATSModel:
     
     @property
     def model(self):
-        """Get the underlying NBEATS model."""
         return self._model
     
     @property
     def neural_forecast(self):
-        """Get the NeuralForecast wrapper."""
         return self._nf
     
     @property
     def is_initialized(self) -> bool:
-        """Check if model is initialized."""
         return self._is_initialized
     
     def get_config(self) -> dict:
-        """Get model configuration as dictionary."""
         return {
             'horizon': self.horizon,
             'input_size': self.input_size,

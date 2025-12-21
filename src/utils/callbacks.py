@@ -7,7 +7,6 @@ class DirectionWeightCallback(tf.keras.callbacks.Callback):
         self.total_epochs = total_epochs
 
     def on_epoch_begin(self, epoch, logs=None):
-        # Start factor at 3.0 and linearly move towards 1.0 by the end of training
         phase_ratio = epoch / float(self.total_epochs)
         factor = 3.0 - 2.0 * phase_ratio
         if factor < 1.0:

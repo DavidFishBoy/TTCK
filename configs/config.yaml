@@ -11,8 +11,6 @@ data:
     - pancakeswap
     - axieinfinity
     - thesandbox
-    # Note: litentry, uniswap, aave don't have USDT pairs (only ETH pairs)
-    # Note: usdcoin, binanceusd are stablecoins (not recommended for prediction)
   days: 1000
   cryptocompare_api_key: "c9b4bd0923fcda3db5e74e8a5c235c079a1da3828f39fdca74ce1dc989cae259"
   validation_split: 0.10
@@ -90,9 +88,7 @@ data:
     thesandbox: "SAND"
     usdcoin: "USDC"
     binanceusd: "BUSD"
-    # Add other coins as needed
   
-  # CryptoCompare symbol mapping (for market cap data)
   cryptocompare_symbol_map:
     bitcoin: "BTC"
     ethereum: "ETH"
@@ -105,34 +101,34 @@ data:
     thesandbox: "SAND"
 #LSTM
 model:
-  sequence_length: 60  # Lookback window for pattern recognition
-  prediction_length: 5  # CHANGED: 5-day multi-horizon forecast
-  forecast_horizon: 5   # NEW: explicit 5-day forecast
-  target_type: "log_return"  # NEW: predict log returns instead of prices
-  lstm_units: [128, 64]  # CHANGED: simplified from [128, 128]
+  sequence_length: 60  
+  prediction_length: 5  
+  forecast_horizon: 5   
+  target_type: "log_return"  
+  lstm_units: [128, 64]  
   dropout_rate: 0.3
-  dense_units: [64]  # CHANGED: simplified from [64, 32] - baseline first
+  dense_units: [64] 
   learning_rate: 0.0005
   clip_norm: 1.0
-  use_attention: false  # CHANGED: disable for baseline (can enable later)
-  use_bidirectional: false  # CHANGED: regular LSTM baseline first
+  use_attention: false  
+  use_bidirectional: false 
   l2_regularization: 0.01
 
 # N-BEATS model configuration
 nbeats:
   enabled: true
-  input_size: 90          # Lookback window (try 60/90/120)
-  horizon: 5              # 5-day forecast
+  input_size: 90          
+  horizon: 5              
   learning_rate: 0.001
-  max_steps: 2000         # Training steps
-  num_stacks: 3           # Number of NBEATS stacks
+  max_steps: 2000         
+  num_stacks: 3           
 
 training:
-  batch_size: 32  # Smaller batch for better generalization
-  epochs: 300  # More epochs with early stopping
+  batch_size: 32  
+  epochs: 300  
   early_stopping:
-    patience: 30  # More patience for complex model
-    min_delta: 0.00005  # Smaller threshold
+    patience: 30  
+    min_delta: 0.00005  
     restore_best_weights: true
   reduce_lr:
     factor: 0.5

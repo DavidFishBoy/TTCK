@@ -1,4 +1,3 @@
-"""LSTM model with attention mechanism for crypto prediction."""
 
 import json
 import logging
@@ -16,11 +15,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
 from src.utils.custom_losses import di_mse_loss, directional_accuracy
 
-
 class CryptoPredictor:
-    """
-    Improved LSTM-based cryptocurrency price predictor with attention mechanism.
-    """
     
     def __init__(
         self,
@@ -68,14 +63,11 @@ class CryptoPredictor:
         return logger
 
     def build(self) -> None:
-        """Build LSTM architecture for multi-horizon return forecasting."""
         self.logger.info("Building LSTM architecture for 5-day return forecasting...")
         inputs = Input(shape=self.input_shape)
         x = inputs
 
-        # Stacked LSTM layers (baseline: regular LSTM, not bidirectional)
         for i, units in enumerate(self.lstm_units):
-            # Return sequences except for last layer (if no attention)
             return_sequences = True if (self.use_attention or i < len(self.lstm_units) - 1) else False
             
             if self.use_bidirectional:
@@ -85,30 +77,23 @@ class CryptoPredictor:
                 x = LSTM(units, return_sequences=return_sequences)(x)
             
             x = Dropout(self.dropout_rate)(x)
-            if return_sequences:  # Only normalize if we have sequences
+            if return_sequences:
                 x = LayerNormalization()(x)
 
-        # Attention mechanism (optional, disabled by default for baseline)
         if self.use_attention:
             self.logger.info("Using attention mechanism")
-            # Multi-head attention
             attention_output = MultiHeadAttention(
                 num_heads=4,
                 key_dim=64,
                 dropout=self.dropout_rate
             )(x, x)
             
-            # Residual connection
             x = Add()([x, attention_output])
             x = LayerNormalization()(x)
             
-            # Global pooling to get fixed-size output
             x = GlobalAveragePooling1D()(x)
         
-        # If no attention and last LSTM didn't return sequences, x is already (batch, features)
-        # If attention was used, x is already pooled
 
-        # Dense layers with L2 regularization
         for units in self.dense_units:
             x = Dense(
                 units,
@@ -118,7 +103,6 @@ class CryptoPredictor:
             x = Dropout(self.dropout_rate)(x)
             x = LayerNormalization()(x)
 
-        # Output layer: 5 neurons for 5-day return forecast
         output = Dense(5, name="return_prediction")(x)
 
         self.model = tf.keras.Model(inputs, output)
@@ -130,16 +114,14 @@ class CryptoPredictor:
         optimizer: Optional[tf.keras.optimizers.Optimizer] = None,
         loss: Optional[Union[str, Callable]] = None,
     ) -> None:
-        """Compile model for multi-horizon return prediction."""
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
 
         if optimizer is None:
-            # Cosine decay learning rate schedule
             lr_schedule = tf.keras.optimizers.schedules.CosineDecay(
                 initial_learning_rate=self.learning_rate,
                 decay_steps=1000,
-                alpha=0.1  # Final LR will be 10% of initial
+                alpha=0.1
             )
             
             if self.clip_norm:
@@ -149,12 +131,10 @@ class CryptoPredictor:
             self.logger.info("Using Adam optimizer with Cosine Decay LR schedule.")
 
         if loss is None:
-            # Import the new loss function
             from src.utils.custom_losses import direction_aware_huber_loss
             loss = direction_aware_huber_loss
             self.logger.info("Using direction-aware Huber loss for return prediction.")
 
-        # Import new metrics
         from src.utils.custom_losses import (
             directional_accuracy_multistep,
             mae_return_metric,
@@ -179,7 +159,6 @@ class CryptoPredictor:
         callbacks: Optional[List[tf.keras.callbacks.Callback]] = None,
         verbose: int = 1
     ) -> tf.keras.callbacks.History:
-        """Train the model."""
         if self.model is None or not self.compiled:
             raise ValueError("Model not ready. Ensure it's built and compiled.")
 
@@ -196,7 +175,6 @@ class CryptoPredictor:
         return history
 
     def predict(self, X: np.ndarray, verbose: int = 0) -> np.ndarray:
-        """Generate predictions."""
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
 
@@ -205,7 +183,6 @@ class CryptoPredictor:
         return preds
 
     def evaluate(self, X: np.ndarray, y: np.ndarray, verbose: int = 0) -> Dict[str, float]:
-        """Evaluate model performance on returns."""
         if self.model is None or not self.compiled:
             raise ValueError("Model not ready. Ensure it's built and compiled.")
 
@@ -217,7 +194,6 @@ class CryptoPredictor:
         return metrics
 
     def save_history(self, history: Union[tf.keras.callbacks.History, Dict], path: Union[str, Path]) -> None:
-        """Save training history."""
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -232,7 +208,6 @@ class CryptoPredictor:
         self.logger.info(f"History saved to {path}.")
 
     def save(self, path: Union[str, Path]) -> None:
-        """Save the model."""
         if self.model is None:
             raise ValueError("Model not built. Call build() first.")
 
@@ -243,18 +218,15 @@ class CryptoPredictor:
 
     @classmethod
     def load(cls, model_path: Union[str, Path]) -> "CryptoPredictor":
-        """Load a saved model with new loss functions."""
         model_path = Path(model_path)
         if not model_path.exists():
             raise FileNotFoundError(f"Model file not found at {model_path}.")
 
-        # Import new loss functions
         from src.utils.custom_losses import (
             directional_accuracy_multistep,
             direction_aware_huber_loss,
             mae_return_metric,
             rmse_return_metric,
-            # Backward compatibility
             directional_accuracy,
             di_mse_loss
         )
@@ -266,7 +238,6 @@ class CryptoPredictor:
                 "direction_aware_huber_loss": direction_aware_huber_loss,
                 "mae_return_metric": mae_return_metric,
                 "rmse_return_metric": rmse_return_metric,
-                # Backward compatibility for old models
                 "directional_accuracy": directional_accuracy,
                 "di_mse_loss": di_mse_loss
             }

@@ -865,4 +865,3 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
 
 if __name__ == "__main__":
     render_sentiment_analysis_page()
-

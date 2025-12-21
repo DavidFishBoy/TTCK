@@ -1,14 +1,4 @@
-# src/analysis/__init__.py
 
-"""
-Analysis package for cryptocurrency quantitative analysis.
-
-This package provides modules for:
-- Financial metrics calculation (risk, performance)
-- Market-wide analysis and correlation
-- Portfolio construction and backtesting
-- Factor-based analysis
-"""
 
 from .financial_metrics import (
     calculate_volatility,
@@ -52,7 +42,6 @@ from .factor_analyzer import (
 )
 
 __all__ = [
-    # Financial metrics
     'calculate_volatility',
     'calculate_drawdown',
     'calculate_var_cvar',
@@ -63,7 +52,6 @@ __all__ = [
     'calculate_calmar_ratio',
     'get_all_metrics',
     
-    # Market analyzer
     'load_all_coins_data',
     'calculate_market_breadth',
     'create_returns_heatmap',
@@ -72,7 +60,6 @@ __all__ = [
     'detect_volume_spike',
     'identify_market_regime',
     
-    # Portfolio engine
     'equal_weight_portfolio',
     'risk_parity_portfolio',
     'volatility_targeting_portfolio',
@@ -80,7 +67,6 @@ __all__ = [
     'calculate_portfolio_metrics',
     'calculate_risk_contribution',
     
-    # Factor analyzer
     'calculate_momentum',
     'calculate_size_factor',
     'calculate_liquidity_factor',

@@ -91,14 +91,18 @@ This interactive application will guide you through:
 ### Training a New Model
 Train the model independently:
 ```bash
-python main.py --config configs/config.yaml --mode train
+python main.py --config configs/config.yaml --mode train (only LSTM)
+```
+Train N-BEATS model: (# Note: NBEATSPredictor is imported lazily to avoid TensorFlow/PyTorch DLL conflict)
+```bash
+python main.py --config configs/config.yaml --mode train --model nbeats
 ```
 
 ### Making Predictions Only
 Use a pre-trained model to generate predictions:
 ```bash
 python main.py --config configs/config.yaml --mode predict
-```
+
 
 ### Updating Data Only
 Update data without proceeding to model training:

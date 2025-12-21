@@ -7,18 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-
 class CryptoVisualizer:
-    """
-    A simplified visualizer for cryptocurrency price prediction tasks.
-
-    Provides methods for:
-    - Plotting price history (candlestick + volume)
-    - Plotting model performance metrics
-    - Plotting actual vs. predicted prices
-    - Plotting training history (loss/metrics over epochs)
-    - Plotting correlation matrix
-    """
 
     def __init__(self, style: str = 'plotly_white', figure_size: Tuple[int, int] = (1000, 600)):
         self.style = style
@@ -114,7 +103,6 @@ class CryptoVisualizer:
                             subplot_titles=('Loss', 'Metrics'),
                             vertical_spacing=0.1)
 
-        # Plot loss
         if 'loss' in history:
             fig.add_trace(go.Scatter(
                 x=list(range(1, len(history['loss']) + 1)),
@@ -131,7 +119,6 @@ class CryptoVisualizer:
                 line=dict(color='red')
             ), row=1, col=1)
 
-        # Plot other metrics (except loss/val_loss)
         metric_keys = [k for k in history.keys() if k not in ('loss', 'val_loss')]
         for m in metric_keys:
             fig.add_trace(go.Scatter(

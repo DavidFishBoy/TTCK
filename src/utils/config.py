@@ -1,17 +1,9 @@
-"""Configuration manager for loading and validating YAML config."""
 import logging
 from pathlib import Path
 from typing import Dict, Any, Union, Optional
 import yaml
 
 class Config:
-    """
-    A simpler configuration manager:
-    - Loads a YAML config file.
-    - Provides getters for common sections (paths, model, training, etc.).
-    - Ensures directories exist.
-    - Basic validation (e.g., required keys) can be done, but kept minimal.
-    """
 
     def __init__(self, config_path: Union[str, Path]):
         self.logger = logging.getLogger(__name__)
@@ -40,9 +32,6 @@ class Config:
         return config
 
     def _create_directories(self) -> None:
-        """
-        Create all directories specified in the configuration under 'paths'.
-        """
         paths = self.config.get('paths', {})
         for key, path_str in paths.items():
             p = Path(path_str)
@@ -50,10 +39,6 @@ class Config:
             self.logger.debug(f"Ensured directory for {key}: {p}")
 
     def get_path(self, key: str) -> str:
-        """
-        Retrieve a path from config['paths'] by key.
-        Raises KeyError if not found.
-        """
         paths = self.config.get('paths', {})
         if key in paths:
             return paths[key]
@@ -78,5 +63,4 @@ class Config:
         return self.get_path('models_dir')
 
     def get_nbeats_config(self) -> Dict[str, Any]:
-        """Get N-BEATS model configuration."""
         return self.config.get('nbeats', {})

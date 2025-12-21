@@ -1,12 +1,7 @@
-"""
-Simple test script to verify analysis modules are working correctly.
-Run this script to test the new analysis modules with real data.
-"""
 
 import sys
 from pathlib import Path
 
-# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.analysis import (
@@ -21,14 +16,11 @@ from src.analysis import (
     cluster_by_factors
 )
 
-
 def test_financial_metrics():
-    """Test financial metrics calculation."""
     print("\n" + "="*60)
     print("Testing Financial Metrics Module")
     print("="*60)
     
-    # Load data
     data_dict = load_all_coins_data(data_dir="data/raw/train")
     
     if not data_dict:
@@ -37,7 +29,6 @@ def test_financial_metrics():
     
     print(f"✅ Loaded {len(data_dict)} coins")
     
-    # Calculate metrics for first coin
     first_coin = list(data_dict.keys())[0]
     df = data_dict[first_coin]
     
@@ -52,26 +43,21 @@ def test_financial_metrics():
     
     return True
 
-
 def test_market_analyzer():
-    """Test market analyzer module."""
     print("\n" + "="*60)
     print("Testing Market Analyzer Module")
     print("="*60)
     
-    # Load data
     data_dict = load_all_coins_data(data_dir="data/raw/train")
     
     if not data_dict:
         print("❌ No data loaded")
         return False
     
-    # Market breadth
     breadth = calculate_market_breadth(data_dict)
     print("\n📈 Market Breadth:")
     print(breadth)
     
-    # Market regime
     regime = identify_market_regime(data_dict)
     print("\n🌍 Market Regime:")
     for key, value in regime.items():
@@ -79,21 +65,17 @@ def test_market_analyzer():
     
     return True
 
-
 def test_portfolio_engine():
-    """Test portfolio engine module."""
     print("\n" + "="*60)
     print("Testing Portfolio Engine Module")
     print("="*60)
     
-    # Load data
     data_dict = load_all_coins_data(data_dir="data/raw/train")
     
     if not data_dict:
         print("❌ No data loaded")
         return False
     
-    # Create equal weight portfolio
     weights = {coin: 1.0 / len(data_dict) for coin in data_dict.keys()}
     
     print(f"\n💼 Backtesting equal-weight portfolio with {len(weights)} coins...")
@@ -106,7 +88,6 @@ def test_portfolio_engine():
     
     print(f"✅ Portfolio backtest complete: {len(portfolio)} days")
     
-    # Calculate metrics
     metrics = calculate_portfolio_metrics(portfolio)
     
     print("\n📊 Portfolio Metrics:")
@@ -115,27 +96,22 @@ def test_portfolio_engine():
     
     return True
 
-
 def test_factor_analyzer():
-    """Test factor analyzer module."""
     print("\n" + "="*60)
     print("Testing Factor Analyzer Module")
     print("="*60)
     
-    # Load data
     data_dict = load_all_coins_data(data_dir="data/raw/train")
     
     if not data_dict:
         print("❌ No data loaded")
         return False
     
-    # Create factor dataframe
     factor_df = create_factor_dataframe(data_dict)
     
     print("\n🧩 Factor Analysis:")
     print(factor_df[['coin', 'momentum_30d', 'volatility', 'size']].head())
     
-    # Cluster coins
     clustered = cluster_by_factors(factor_df, n_clusters=3)
     
     print("\n🔍 Coin Clusters:")
@@ -145,9 +121,7 @@ def test_factor_analyzer():
     
     return True
 
-
 def main():
-    """Run all tests."""
     print("\n" + "="*60)
     print("🧪 Testing Analysis Modules")
     print("="*60)
@@ -169,7 +143,6 @@ def main():
             print(f"\n❌ Error in {test_name}: {e}")
             results.append((test_name, False))
     
-    # Summary
     print("\n" + "="*60)
     print("📋 Test Summary")
     print("="*60)
@@ -186,7 +159,6 @@ def main():
         print("\n⚠️ Some tests failed. Please check the errors above.")
     
     return all_passed
-
 
 if __name__ == "__main__":
     success = main()

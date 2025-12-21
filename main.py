@@ -1,4 +1,3 @@
-"""Main entry point for data collection, training, and prediction pipeline."""
 import argparse
 import asyncio
 import json
@@ -15,7 +14,6 @@ import tensorflow as tf
 from src.data_collection.data_collector import DataCollector
 from src.preprocessing.pipeline import Pipeline
 from src.training.lstm_model import CryptoPredictor
-# Note: NBEATSPredictor is imported lazily to avoid TensorFlow/PyTorch DLL conflict
 from src.training.trainer import ModelTrainer
 from src.utils.config import Config
 from src.utils.logger import setup_logger
@@ -48,7 +46,6 @@ async def collect_data(config: Config, logger: logging.Logger, coins: Optional[L
     for coin in selected_coins:
         binance_file = raw_data_dir / f"{coin}_binance_{today_str}.csv"
         if binance_file.exists():
-            # If we have binance data for today, skip fetching
             df = pd.read_csv(binance_file, index_col=0)
             existing_data[coin] = {'binance': df}
             logger.info(f"Data for {coin} already exists. Skipping collection.")
@@ -62,7 +59,7 @@ async def collect_data(config: Config, logger: logging.Logger, coins: Optional[L
     collector = DataCollector(
         coins=coins_to_fetch,
         days=data_config['days'],
-        symbol_mapping=data_config.get('symbol_mapping', []),  # Adjust symbol_mapping as needed in config
+        symbol_mapping=data_config.get('symbol_mapping', []),  
         coin_map=data_config.get('coin_map', {}),
         outlier_detection=True,
         outlier_threshold=3.0,
@@ -131,7 +128,6 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
         model.build()
         model.compile(loss=direction_aware_huber_loss)
 
-        # No need for DirectionWeightCallback anymore - new loss is better
         trainer = ModelTrainer(
             model=model.model,
             model_dir=config.get_path('models_dir'),
@@ -146,13 +142,12 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
             y_train=coin_data["y_train"],
             X_val=coin_data["X_val"],
             y_val=coin_data["y_val"],
-            additional_callbacks=None  # No custom callbacks needed
+            additional_callbacks=None  
         )
 
         eval_results = model.evaluate(coin_data["X_test"], coin_data["y_test"])
-        preds_returns = model.predict(coin_data["X_test"])  # Shape: (N, 5) - log returns
+        preds_returns = model.predict(coin_data["X_test"])  
 
-        # Convert returns to prices for visualization/storage
         test_last_prices = coin_data["test_last_prices"]
         preds_prices = pipelines[coin].inverse_transform_predictions(preds_returns, test_last_prices)
         y_test_prices = pipelines[coin].inverse_transform_actuals(coin_data["y_test"], test_last_prices)
@@ -165,8 +160,8 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
         results[coin] = {
             "history": history.history,
             "evaluation": eval_results,
-            "predictions": preds_prices.tolist(),  # Shape: (N, 5) for 5-day forecasts
-            "actual_prices": y_test_prices.tolist()  # Shape: (N, 5)
+            "predictions": preds_prices.tolist(),  
+            "actual_prices": y_test_prices.tolist()  
         }
 
     return results, processed_data, pipelines
@@ -177,17 +172,7 @@ def train_nbeats(
     logger: logging.Logger,
     data: Dict[str, Dict[str, pd.DataFrame]]
 ) -> Dict:
-    """
-    Train global N-BEATS model on all coins.
-    
-    Args:
-        config: Configuration object
-        logger: Logger instance
-        data: Raw data dictionary {coin: {'binance': DataFrame}}
-    
-    Returns:
-        Dictionary with N-BEATS training results
-    """
+
     nbeats_config = config.get_nbeats_config()
     
     if not nbeats_config.get('enabled', False):
@@ -198,11 +183,8 @@ def train_nbeats(
     logger.info("Starting N-BEATS training...")
     logger.info("=" * 50)
     
-    # Lazy import to avoid TensorFlow/PyTorch DLL conflict on Windows
-    # Import PyTorch-based modules only when needed
     from src.training.nbeats_predictor import NBEATSPredictor
     
-    # Initialize N-BEATS predictor
     nbeats = NBEATSPredictor(
         horizon=nbeats_config.get('horizon', 5),
         input_size=nbeats_config.get('input_size', 90),
@@ -211,8 +193,6 @@ def train_nbeats(
         num_stacks=nbeats_config.get('num_stacks', 3)
     )
     
-    # Prepare data in long format for N-BEATS
-    # Convert raw data to simple DataFrames for long format conversion
     data_for_nbeats = {}
     for coin, sources in data.items():
         binance_df = sources.get('binance')
@@ -224,26 +204,21 @@ def train_nbeats(
         return {}
     
     try:
-        # Convert to long format
         df_long = nbeats.prepare_long_format(data_for_nbeats)
         
-        # Train global model
         training_info = nbeats.train(df_long)
         
-        # Generate predictions
         predictions = nbeats.predict()
         
-        # Get last prices for each coin to convert returns to prices
         last_prices = {}
         for coin, df in data_for_nbeats.items():
             coin_symbol = coin.upper()[:3] if len(coin) > 3 else coin.upper()
             if 'close' in df.columns:
                 last_prices[coin_symbol] = float(df['close'].iloc[-1])
         
-        # Convert predictions to prices
+
         price_forecasts = nbeats.predict_returns_to_prices(predictions, last_prices)
         
-        # Save model
         nbeats_model_dir = Path(config.get_path('models_dir')) / "nbeats"
         nbeats.save(nbeats_model_dir)
         
@@ -270,28 +245,18 @@ def save_results(
     logger: logging.Logger,
     model_type: str = "lstm"
 ):
-    """
-    Save results to JSON files.
-    
-    Args:
-        results: Results dictionary
-        config: Configuration object
-        logger: Logger instance
-        model_type: Type of model ('lstm' or 'nbeats')
-    """
+
     logger.info(f"Saving {model_type} results...")
     results_dir = Path(config.get_path('results_dir')) / model_type
     results_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     if model_type == "nbeats":
-        # Save N-BEATS results as single file
         result_path = results_dir / f"nbeats_global_results_{timestamp}.json"
         with open(result_path, 'w') as f:
             json.dump(results, f, indent=4, default=str)
         logger.info(f"Saved N-BEATS results at {result_path}")
     else:
-        # Save per-coin results for LSTM
         for coin, result in results.items():
             result_path = results_dir / f"{coin}_results_{timestamp}.json"
             with open(result_path, 'w') as f:
@@ -322,7 +287,6 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
     today_str = datetime.now().strftime('%Y%m%d')
     all_predictions = {}
 
-    # Create the results/predictions directory
     prediction_output_dir = Path(config.get_path('results_dir')) / "predictions"
     prediction_output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -332,10 +296,8 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
         if not recent_file.exists():
             logger.info(f"Recent data for {coin} not found. Collecting now...")
 
-        # GỌI HÀM CÓ THẬT
         data = await collector.collect_all_data([coin])
 
-        # Lấy đúng source binance rồi lưu ra file recent
         coin_data = data.get(coin, {})
         binance_df = coin_data.get("binance")
 
@@ -378,7 +340,6 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
             logger.error(f"No numeric_features.json found for {coin}, cannot proceed.")
             continue
 
-        # Run pipeline in prediction mode to get the last sequence
         prediction_data = pipeline.run(df, prediction_mode=True)
         X = prediction_data['X']
         last_price = prediction_data['last_price']
@@ -390,17 +351,12 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
             continue
 
         model = CryptoPredictor.load(model_path)
-
-        # Number of future days to predict
         future_days = 5
 
-        # Predict returns for next 5 days directly (no iterative rollout needed!)
-        preds_returns = model.predict(X)  # Shape: (1, 5) - log returns for 5 days
+        preds_returns = model.predict(X)
         
-        # Convert log returns to actual prices
         predictions = pipeline.inverse_transform_predictions(preds_returns[0], last_price)
 
-        # Create a user-friendly JSON structure
         prediction_output = {
             "coin": coin,
             "prediction_generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -414,7 +370,6 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
             )
         }
 
-        # Save predictions in results/predictions/{coin}_future_predictions.json
         coin_prediction_path = prediction_output_dir / f"{coin}_future_predictions.json"
         with open(coin_prediction_path, 'w') as f:
             json.dump(prediction_output, f, indent=4)
@@ -470,7 +425,7 @@ async def main():
     elif args.mode == "train":
         data = await collect_data(config, logger, coins=args.coins)
         
-        # Train LSTM first
+
         logger.info("=" * 50)
         logger.info("Phase 1: Training LSTM models...")
         logger.info("=" * 50)
@@ -478,7 +433,6 @@ async def main():
         save_results(lstm_results, config, logger, model_type="lstm")
         logger.info("LSTM training completed.")
         
-        # Then train N-BEATS
         logger.info("=" * 50)
         logger.info("Phase 2: Training N-BEATS model...")
         logger.info("=" * 50)
@@ -490,7 +444,6 @@ async def main():
         logger.info("All training completed!")
         logger.info("=" * 50)
     elif args.mode == "train-lstm":
-        # Train only LSTM models
         data = await collect_data(config, logger, coins=args.coins)
         logger.info("=" * 50)
         logger.info("Training LSTM models only...")
@@ -499,7 +452,6 @@ async def main():
         save_results(lstm_results, config, logger, model_type="lstm")
         logger.info("LSTM training completed.")
     elif args.mode == "train-nbeats":
-        # Train only N-BEATS model
         data = await collect_data(config, logger, coins=args.coins)
         logger.info("=" * 50)
         logger.info("Training N-BEATS model only...")
@@ -513,14 +465,12 @@ async def main():
     elif args.mode == "full-pipeline":
         data = await collect_data(config, logger, coins=args.coins)
         
-        # Train LSTM
         logger.info("=" * 50)
         logger.info("Phase 1: Training LSTM models...")
         logger.info("=" * 50)
         lstm_results, processed_data, pipelines = preprocess_and_train(config, logger, data)
         save_results(lstm_results, config, logger, model_type="lstm")
         
-        # Train N-BEATS
         logger.info("=" * 50)
         logger.info("Phase 2: Training N-BEATS model...")
         logger.info("=" * 50)
@@ -528,7 +478,7 @@ async def main():
         if nbeats_results:
             save_results(nbeats_results, config, logger, model_type="nbeats")
         
-        # Run predictions
+
         logger.info("=" * 50)
         logger.info("Phase 3: Running predictions...")
         logger.info("=" * 50)
@@ -557,7 +507,7 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
     for coin in selected_coins:
         logger.info(f"Comparing models for {coin}...")
         
-        # Load processed test data
+        
         processed_dir = Path(config.get_path('processed_data_dir')) / coin
         
         if not processed_dir.exists():
@@ -568,7 +518,6 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
             X_test = np.load(processed_dir / "X_test.npy")
             y_test = np.load(processed_dir / "y_test.npy")
             
-            # Load pipeline to inverse transform
             pipeline = Pipeline(config=config)
             scaler_dir = processed_dir / "scalers"
             pipeline.load_scaler(
@@ -576,7 +525,6 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
                 scaler_dir / "target_scaler.joblib"
             )
             
-            # Get actual prices
             y_test_prices = pipeline.inverse_transform_actuals(y_test)
             
             comparison_results = {
@@ -585,7 +533,6 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
                 'comparison_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
-            # 1. LSTM predictions (load existing model)
             lstm_model_path = Path(config.get_path('models_dir')) / coin / "model.keras"
             if lstm_model_path.exists():
                 logger.info(f"Loading LSTM model for {coin}...")
@@ -605,9 +552,9 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
             else:
                 logger.warning(f"No LSTM model found for {coin}")
             
-            # 2. Baseline models
+           
             logger.info("Running baseline models...")
-            close_idx = len(pipeline.numeric_features)  # close is last feature
+            close_idx = len(pipeline.numeric_features)  
             
             baseline_models = get_all_baseline_models()
             for baseline in baseline_models:
@@ -618,7 +565,7 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
                 comparison_results['models'][baseline.name.lower().replace('(', '_').replace(')', '').replace('=', '')] = metrics
                 logger.info(f"{baseline.name} metrics: {metrics}")
             
-            # 3. ARIMA model
+            
             logger.info("Running ARIMA model...")
             try:
                 arima = ARIMAPredictor()
@@ -631,7 +578,7 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
             except Exception as e:
                 logger.error(f"ARIMA failed for {coin}: {e}")
             
-            # Find best model
+            
             best_model = max(
                 comparison_results['models'].items(),
                 key=lambda x: x[1]['directional_accuracy']
@@ -639,7 +586,7 @@ async def compare_models_mode(config: Config, logger: logging.Logger, coins: Opt
             comparison_results['best_model'] = best_model[0]
             comparison_results['best_directional_accuracy'] = best_model[1]['directional_accuracy']
             
-            # Save results
+            
             result_file = comparison_dir / f"{coin}_comparison.json"
             with open(result_file, 'w') as f:
                 json.dump(comparison_results, f, indent=4)
