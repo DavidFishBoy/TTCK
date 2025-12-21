@@ -258,6 +258,13 @@ CHART_PROMPTS = {
 - Biến động dự kiến: {expected_change:+.2f}% ({expected_change_usd:+.2f} USD)
 - Xu hướng dự đoán: {trend_direction}
 
+### MÔ TẢ CÁC MÔ HÌNH:
+- **LSTM**: Deep Learning nắm bắt pattern phức tạp và phụ thuộc dài hạn
+- **N-BEATS**: Neural basis expansion - state-of-the-art cho time series forecasting
+- **MA-20**: Moving Average - làm mượt nhiễu, phản ánh trend ngắn hạn
+- **EMA**: Exponential MA - ưu tiên dữ liệu gần đây hơn
+- **ARIMA**: Mô hình thống kê cổ điển cho chuỗi thời gian
+
 ### YÊU CẦU PHÂN TÍCH:
 1. **Đánh giá dự đoán**: Dựa trên xu hướng gần đây, dự đoán có hợp lý không?
 2. **Độ tin cậy**: 
@@ -270,6 +277,40 @@ CHART_PROMPTS = {
    - Entry point?
    - Stop-loss?
    - Take-profit?
+""",
+
+    "multi_model_prediction": """## PHÂN TÍCH DỰ ĐOÁN ĐA MÔ HÌNH
+
+**Coin:** {coin}
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- Giá hiện tại: ${current_price:.2f}
+- Số ngày dự đoán: {forecast_days}
+
+### DỰ ĐOÁN TỪ CÁC MÔ HÌNH:
+| Mô hình | Giá cuối kỳ | Thay đổi | Xu hướng |
+{predictions_table}
+
+### SO SÁNH MÔ HÌNH:
+- LSTM prediction: ${lstm_price:.2f} ({lstm_change:+.2f}%)
+- N-BEATS prediction: ${nbeats_price:.2f} ({nbeats_change:+.2f}%)
+- MA prediction: ${ma_price:.2f} ({ma_change:+.2f}%)
+- EMA prediction: ${ema_price:.2f} ({ema_change:+.2f}%)
+- ARIMA prediction: ${arima_price:.2f} ({arima_change:+.2f}%)
+
+### CONSENSUS:
+- Số mô hình dự đoán TĂNG: {bullish_count}/5
+- Số mô hình dự đoán GIẢM: {bearish_count}/5
+- Độ lệch giữa các mô hình: {prediction_std:.2f}%
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Consensus**: Các mô hình có đồng thuận xu hướng không?
+2. **Độ tin cậy**: 
+   - Nếu các mô hình đồng thuận → tin cậy cao hơn
+   - Nếu các mô hình khác nhau nhiều → cần thận trọng
+3. **Mô hình nào đáng tin nhất**: Dựa trên đặc điểm thị trường hiện tại?
+4. **Khuyến nghị**: MUA / BÁN / GIỮ dựa trên tổng hợp dự đoán?
 """,
 
     # -------------------------------------------------------------------------
@@ -313,6 +354,13 @@ Bảng xếp hạng các coin theo chỉ số risk-adjusted:
 **Coin:** {coin}
 **Tiêu đề:** {chart_title}
 
+### CÁC MÔ HÌNH ĐƯỢC SO SÁNH:
+- **LSTM**: Deep Learning với attention mechanism
+- **N-BEATS**: Neural Basis Expansion Analysis for Time Series
+- **MA (Moving Average)**: Trung bình động đơn giản
+- **EMA (Exponential MA)**: Trung bình động có trọng số
+- **ARIMA**: Mô hình thống kê cổ điển
+
 ### DỮ LIỆU TỪ BIỂU ĐỒ:
 Hiệu suất các mô hình:
 
@@ -323,12 +371,19 @@ Hiệu suất các mô hình:
 - Mô hình có Direction Accuracy cao nhất: {best_direction_model}
 - Mô hình baseline (Naive): RMSE = {naive_rmse:.4f}
 
+### ĐẶC ĐIỂM CÁC MÔ HÌNH:
+- **LSTM**: Tốt cho pattern phức tạp, cần nhiều dữ liệu, chậm
+- **N-BEATS**: State-of-the-art, global model cho nhiều coin, nhanh hơn LSTM
+- **MA/EMA**: Đơn giản, dễ hiểu, phản ứng chậm với thay đổi đột ngột
+- **ARIMA**: Tốt cho dữ liệu stationary, khó tune parameters
+
 ### YÊU CẦU PHÂN TÍCH:
 1. **Đánh giá tổng quan**: Mô hình nào hoạt động tốt nhất?
 2. **So với baseline**: Các mô hình ML có vượt trội Naive không? Vượt bao nhiêu %?
 3. **Direction Accuracy**: Quan trọng cho trading, mô hình nào đoán đúng xu hướng nhất?
 4. **Khuyến nghị sử dụng**: 
-   - Nên tin tưởng mô hình nào?
+   - Market trending: Nên dùng mô hình nào?
+   - Market sideways: Nên dùng mô hình nào?
    - Khi nào nên/không nên dựa vào dự đoán AI?
 """,
 
