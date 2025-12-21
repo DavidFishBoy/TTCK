@@ -120,7 +120,7 @@ model:
 
 training:
   batch_size: 32  # Smaller batch for better generalization
-  epochs: 180  # More epochs with early stopping
+  epochs: 300  # More epochs with early stopping
   early_stopping:
     patience: 30  # More patience for complex model
     min_delta: 0.00005  # Smaller threshold
