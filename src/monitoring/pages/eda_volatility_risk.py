@@ -82,15 +82,20 @@ def render_volatility_risk_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biến Động (Volatility) Là Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biến Động (Volatility) Theo Thời Gian</h4>
             <p style='margin: 0; color: #ccc;'>
-                Biến động đo lường mức độ dao động của giá. Biến động cao = Rủi ro cao nhưng cũng có tiềm năng lợi nhuận cao.
+                Biến động đo lường mức độ dao động giá trong một khoảng thời gian - được tính bằng độ lệch chuẩn của lợi nhuận hàng ngày.
+                Biểu đồ hiển thị 2 đường biến động lăn: 14 ngày (đường cam - ngắn hạn) và 30 ngày (đường đỏ - dài hơn).
             </p>
-            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Cách Đọc</h4>
-            <ul style='margin: 0; color: #ccc; padding-left: 1.5rem;'>
-                <li>Đường đi lên → Biến động tăng (rủi ro tăng)</li>
-                <li>Đường đi xuống → Biến động giảm (thị trường ổn định hơn)</li>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Biến động cao (> 5%)</strong>: Rủi ro lớn nhưng cũng là cơ hội cho trader ngắn hạn</li>
+                <li><strong>Biến động thấp (< 2%)</strong>: Thị trường ổn định, phù hợp cho nhà đầu tư dài hạn</li>
+                <li><strong>Đường đi lên</strong>: Rủi ro đang gia tăng - cân nhắc giảm vị thế hoặc tăng cường quản lý rủi ro</li>
+                <li><strong>Đường đi xuống</strong>: Thị trường bớt căng thẳng - có thể tăng vị thế</li>
             </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Ứng dụng:</strong> Dùng biến động để tính position size - biến động cao thì giảm vị thế, biến động thấp thì tăng vị thế.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -120,7 +125,7 @@ def render_volatility_risk_page():
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # AI Analysis Button for Volatility Chart
     if st.button("🤖 AI Phân Tích Biểu Đồ Biến Động", key="analyze_volatility"):
@@ -162,15 +167,18 @@ def render_volatility_risk_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📉 Drawdown Là Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📉 Drawdown - Chỉ Số Đo Rủi Ro Sụt Giảm</h4>
             <p style='margin: 0; color: #ccc;'>
-                Drawdown là mức giảm từ đỉnh cao nhất trước đó. Ví dụ, nếu coin đạt đỉnh $100 
-                rồi giảm xuống $70, drawdown là -30%.
+                Drawdown là mức giảm từ đỉnh cao nhất trước đó so với giá hiện tại. Ví dụ: nếu coin đạt đỉnh $100 rồi giảm xuống $70, drawdown là -30%.
+                Biểu đồ "Underwater" bên dưới hiển thị mức drawdown theo thời gian - vùng đỏ càng sâu thì lỗ càng lớn.
             </p>
-            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Tại Sao Quan Trọng?</h4>
-            <p style='margin: 0; color: #ccc;'>
-                Max Drawdown cho biết mức lỗ tối đa bạn có thể phải chịu nếu mua đúng đỉnh. 
-                Đây là chỉ số quan trọng để đánh giá rủi ro.
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Max Drawdown</strong>: Mức lỗ tối đa từ đỉnh nếu bạn mua đúng đỉnh và bán đúng đáy - chỉ số quan trọng nhất để đánh giá rủi ro</li>
+                <li><strong>Thời gian phục hồi</strong>: Bao lâu để giá quay lại đỉnh cũ - coin tốt sẽ phục hồi nhanh</li>
+                <li><strong>Tần suất drawdown sâu (> 20%)</strong>: Cho biết coin thường xuyên có biến động mạnh hay không</li>
+            </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Lưu ý quan trọng:</strong> Max Drawdown cho biết worst-case scenario - nếu bạn không chấp nhận được mức lỗ này, hãy giảm vị thế hoặc dùng stop-loss.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -205,7 +213,7 @@ def render_volatility_risk_page():
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # AI Analysis Button for Drawdown Chart
     if st.button("🤖 AI Phân Tích Biểu Đồ Drawdown", key="analyze_drawdown"):
@@ -237,11 +245,18 @@ def render_volatility_risk_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Giải Thích Chỉ Số</h4>
-            <ul style='margin: 0; color: #ccc; padding-left: 1.5rem;'>
-                <li><strong>VaR (Value at Risk)</strong>: Mức lỗ tối đa dự kiến trong 1 ngày ở độ tin cậy 95%</li>
-                <li><strong>CVaR (Conditional VaR)</strong>: Mức lỗ trung bình khi vượt quá VaR</li>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>⚠️ Các Chỉ Số Rủi Ro Chuyên Nghiệp</h4>
+            <p style='margin: 0; color: #ccc;'>
+                Đây là các chỉ số được các quỹ đầu tư và nhà đầu tư chuyên nghiệp sử dụng để đánh giá và quản lý rủi ro danh mục.
+            </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>VaR 95% (Value at Risk)</strong>: Mức lỗ tối đa dự kiến trong 1 ngày với độ tin cậy 95%. Ví dụ: VaR = -3% nghĩa là có 95% khả năng bạn sẽ không lỗ quá 3% trong 1 ngày</li>
+                <li><strong>CVaR 95% (Conditional VaR)</strong>: Mức lỗ trung bình khi vượt quá VaR (worst 5% scenarios). CVaR luôn lớn hơn VaR và cho biết "tail risk" - rủi ro trong các sự kiện cực đoan</li>
+                <li><strong>Biến động năm (Annualized Volatility)</strong>: Độ lệch chuẩn lợi nhuận đã chuẩn hóa theo năm - dùng để so sánh rủi ro giữa các tài sản</li>
             </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Ứng dụng:</strong> Nếu bạn đầu tư $10,000 và VaR = -5%, thì có 95% khả năng bạn sẽ không lỗ quá $500 trong một ngày.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -289,7 +304,7 @@ def render_volatility_risk_page():
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # AI Analysis Button for Returns Distribution
     if st.button("🤖 AI Phân Tích Phân Phối Lợi Nhuận", key="analyze_returns"):

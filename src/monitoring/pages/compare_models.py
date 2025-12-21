@@ -121,12 +121,18 @@ def render_compare_models_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Các Chỉ Số Đánh Giá</h4>
-            <ul style='margin: 0; color: #ccc; padding-left: 1.5rem;'>
-                <li><strong>MAE</strong>: Sai số tuyệt đối trung bình ($) - càng thấp càng tốt</li>
-                <li><strong>RMSE</strong>: Căn bậc hai sai số bình phương - phạt sai số lớn</li>
-                <li><strong>Độ Chính Xác Hướng</strong>: % dự đoán đúng xu hướng tăng/giảm</li>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Các Chỉ Số Đánh Giá Mô Hình Dự Đoán</h4>
+            <p style='margin: 0; color: #ccc;'>
+                Bảng hiển thị hiệu suất dự đoán của 5 mô hình trên dữ liệu test. Mỗi chỉ số đo lường một khía cạnh khác nhau của độ chính xác.
+            </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>MAE (Mean Absolute Error)</strong>: Sai số tuyệt đối trung bình ($) - càng thấp càng tốt. VD: MAE = $50 nghĩa là trung bình dự đoán sai $50</li>
+                <li><strong>RMSE (Root Mean Square Error)</strong>: Căn bậc hai sai số bình phương - phạt nặng các sai số lớn, cho biết mô hình có hay sai lớn không</li>
+                <li><strong>Độ Chính Xác Hướng</strong>: % dự đoán đúng xu hướng tăng/giảm - quan trọng cho trading (> 55% là tốt)</li>
             </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Mẹo:</strong> Mô hình có MAE thấp tốt cho dự đoán giá. Mô hình có độ chính xác hướng cao tốt cho trading.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -219,7 +225,7 @@ def render_compare_models_page():
             'RMSE': '${:.2f}',
             'Độ Chính Xác Hướng': '{:.1f}%'
         }),
-        use_container_width=True,
+        width='stretch',
         height=220
     )
     
@@ -273,7 +279,7 @@ def render_compare_models_page():
     fig.update_layout(height=400, template="plotly_dark")
     fig.update_xaxes(tickangle=0)
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # AI Analysis Button for Model Comparison
     chart_analyzer = get_chart_analyzer()
@@ -312,10 +318,16 @@ def render_compare_models_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📉 Biểu Đồ So Sánh Dự Đoán vs Giá Thực Tế</h4>
             <p style='margin: 0; color: #ccc;'>
-                Biểu đồ hiển thị dự đoán của từng mô hình (đường màu) so với giá thực tế (đường trắng).
-                Mô hình có đường bám sát giá trắng có độ chính xác tốt hơn.
+                Biểu đồ hiển thị dự đoán của các mô hình (đường màu đứt nét) so với giá thực tế (đường trắng liền) trên dữ liệu test.
+                Đây là cách trực quan nhất để đánh giá độ chính xác của từng mô hình.
             </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Mô hình tốt</strong>: Đường dự đoán bám sát đường giá trắng, đặc biệt tại các điểm đảo chiều</li>
+                <li><strong>Mô hình kém</strong>: Đường dự đoán lệch xa giá thực tế, trễ pha (lagging)</li>
+                <li><strong>Lag/Delay</strong>: Nếu đường dự đoán luôn chậm hơn giá thực = mô hình chỉ đang đuổi theo, không dự đoán được</li>
+            </ul>
         </div>
     """, unsafe_allow_html=True)
     
@@ -357,7 +369,26 @@ def render_compare_models_page():
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig_pred, use_container_width=True)
+    st.plotly_chart(fig_pred, width='stretch')
+    
+    # AI Analysis Button for Predictions vs Actual
+    if st.button("🤖 AI Phân Tích Dự Đoán vs Thực Tế", key="analyze_pred_vs_actual"):
+        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            chart_data = {
+                "coin": selected_coin,
+                "selected_models": ", ".join(selected_models),
+                "test_period": test_size,
+                "best_mae_model": best_mae_model,
+                "best_direction_model": best_dir_model
+            }
+            
+            analysis = chart_analyzer.analyze_chart(
+                coin=selected_coin,
+                chart_type="predictions_vs_actual",
+                chart_data=chart_data,
+                chart_title=f"{selected_coin.upper()} - Dự Đoán vs Thực Tế"
+            )
+            st.markdown(analysis)
     
     # Insights
     st.markdown("---")

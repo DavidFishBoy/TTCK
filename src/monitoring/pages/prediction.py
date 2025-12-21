@@ -139,21 +139,21 @@ def render_prediction_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Này Hiển Thị Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ So Sánh Dự Đoán Từ 5 Mô Hình</h4>
             <p style='margin: 0; color: #ccc;'>
-                Biểu đồ so sánh dự đoán từ <strong>5 mô hình</strong> trên cùng một đồ thị:
+                Biểu đồ hiển thị giá lịch sử (đường trắng liền) và dự đoán tương lai từ các mô hình khác nhau (đường đứt màu).
+                Mỗi mô hình có ưu nhược điểm riêng, phù hợp với các điều kiện thị trường khác nhau.
             </p>
             <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
-                <li><span style='color: #667eea;'>■</span> <strong>LSTM</strong>: Đường tím - Deep Learning nắm bắt xu hướng dài hạn</li>
-                <li><span style='color: #00d4aa;'>■</span> <strong>MA(20)</strong>: Đường xanh lá - Moving Average 20 ngày</li>
-                <li><span style='color: #ffc107;'>■</span> <strong>EMA</strong>: Đường vàng - Exponential Moving Average</li>
-                <li><span style='color: #00bcd4;'>■</span> <strong>N-BEATS</strong>: Đường xanh dương - Neural Basis Expansion</li>
-                <li><span style='color: #ff6b6b;'>■</span> <strong>ARIMA</strong>: Đường đỏ - AutoRegressive Integrated MA</li>
+                <li><span style='color: #667eea;'>■</span> <strong>LSTM</strong>: Deep Learning - tốt cho bắt xu hướng dài hạn, có thể overfit</li>
+                <li><span style='color: #00d4aa;'>■</span> <strong>MA(20)</strong>: Đơn giản, ổn định - phản ứng chậm với thay đổi</li>
+                <li><span style='color: #ffc107;'>■</span> <strong>EMA</strong>: Phản ứng nhanh hơn MA - cân bằng giữa ngắn và trung hạn</li>
+                <li><span style='color: #00bcd4;'>■</span> <strong>N-BEATS</strong>: Neural network hiện đại - phân tách trend và seasonality tự động</li>
+                <li><span style='color: #ff6b6b;'>■</span> <strong>ARIMA</strong>: Mô hình thống kê - tốt cho dữ liệu có xu hướng rõ ràng</li>
             </ul>
-            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Cách Đọc</h4>
-            <p style='margin: 0; color: #ccc;'>
-                Khi nhiều mô hình hội tụ (dự đoán giống nhau), tín hiệu đáng tin cậy hơn. 
-                Khi phân kỳ, cần cẩn trọng và xem xét thêm các yếu tố khác.
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Quy tắc:</strong> Khi nhiều mô hình <strong>hội tụ</strong> (dự đoán giống nhau) → tín hiệu đáng tin cậy. 
+                Khi <strong>phân kỳ</strong> (kết quả khác nhau nhiều) → thị trường khó dự đoán, cần thận trọng.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -349,7 +349,7 @@ def render_prediction_page():
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # AI Analysis Button for Prediction Chart
     chart_analyzer = get_chart_analyzer()
@@ -461,7 +461,7 @@ def render_prediction_page():
             'Giá Dự Đoán': '${:,.2f}',
             'Thay Đổi (%)': '{:+.2f}%'
         }),
-        use_container_width=True,
+        width='stretch',
         hide_index=True
     )
     

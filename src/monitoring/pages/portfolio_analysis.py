@@ -49,11 +49,17 @@ def render_portfolio_analysis_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bảng Này Hiển Thị Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bảng So Sánh Hiệu Suất Các Chiến Lược</h4>
             <p style='margin: 0; color: #ccc;'>
-                So sánh hiệu suất của 2 chiến lược phân bổ danh mục với vốn ban đầu $10,000. 
+                Bảng hiển thị kết quả backtest của 2 chiến lược phân bổ danh mục với vốn ban đầu $10,000 trên dữ liệu lịch sử.
                 Mỗi chiến lược có cách phân bổ tỷ trọng khác nhau giữa các coin.
             </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Total Return</strong>: Tổng lợi nhuận từ đầu đến cuối kỳ (%)</li>
+                <li><strong>CAGR</strong>: Tốc độ tăng trưởng kép hàng năm - so sánh được giữa các thời kỳ khác nhau</li>
+                <li><strong>Sharpe Ratio</strong>: Lợi nhuận điều chỉnh rủi ro (> 1 là tốt, > 2 là xuất sắc)</li>
+                <li><strong>Max Drawdown</strong>: Mức lỗ tối đa từ đỉnh - chỉ số rủi ro quan trọng nhất</li>
+            </ul>
         </div>
     """, unsafe_allow_html=True)
     
@@ -77,7 +83,7 @@ def render_portfolio_analysis_page():
             'max_drawdown': '{:.2f}%',
             'annualized_volatility': '{:.2f}%'
         }),
-        use_container_width=True
+        width='stretch'
     )
     
     # Strategy Analysis
@@ -122,10 +128,18 @@ def render_portfolio_analysis_page():
         st.markdown("""
             <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                         border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📈 Đường Cong Vốn (Equity Curve)</h4>
+                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📈 Đường Cong Vốn - Lịch Sử Giá Trị Danh Mục</h4>
                 <p style='margin: 0; color: #ccc;'>
-                    Biểu đồ cho thấy giá trị danh mục theo thời gian nếu bạn đầu tư $10,000 từ đầu.
-                    Đường đi lên = danh mục sinh lời, đường đi xuống = lỗ.
+                    Biểu đồ cho thấy giá trị danh mục theo thời gian nếu bạn đầu tư $10,000 từ đầu kỳ.
+                    Vùng tô màu bên dưới cho thấy sự tăng trưởng tổng thể.
+                </p>
+                <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                    <li><strong>Đường đi lên</strong>: Danh mục đang sinh lời - chiến lược hiệu quả</li>
+                    <li><strong>Đường đi xuống</strong>: Danh mục đang lỗ - cân nhắc điều chỉnh</li>
+                    <li><strong>Các đợt giảm sâu</strong>: Chính là các giai đoạn drawdown - thời điểm khó khăn nhất</li>
+                </ul>
+                <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                    <strong>Lưu ý:</strong> Kết quả quá khứ không đảm bảo tương lai, nhưng giúp hiểu hành vi của chiến lược trong các điều kiện khác nhau.
                 </p>
             </div>
         """, unsafe_allow_html=True)
@@ -149,7 +163,7 @@ def render_portfolio_analysis_page():
             template="plotly_dark"
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # AI Analysis Button for Portfolio Chart
         chart_analyzer = get_chart_analyzer()
@@ -212,8 +226,17 @@ def render_portfolio_analysis_page():
         st.markdown("""
             <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                         border-left: 4px solid #667eea; margin-bottom: 1rem;'>
+                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>⚖️ Tỷ Trọng Phân Bổ Danh Mục</h4>
                 <p style='margin: 0; color: #ccc;'>
-                    Bảng dưới hiển thị phần trăm vốn phân bổ cho mỗi coin theo chiến lược đã chọn.
+                    Bảng và biểu đồ tròn hiển thị phần trăm vốn phân bổ cho mỗi coin theo chiến lược đã chọn.
+                    Đây là thông tin quan trọng để bạn tái tạo danh mục trong thực tế.
+                </p>
+                <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                    <li><strong>Equal Weight</strong>: Mỗi coin được phân bổ đều (VD: 9 coin = mỗi coin 11.1%)</li>
+                    <li><strong>Risk Parity</strong>: Coin biến động thấp được phân bổ nhiều hơn để cân bằng rủi ro</li>
+                </ul>
+                <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                    <strong>Lưu ý:</strong> Tỷ trọng nên được tái cân bằng định kỳ (hàng tháng hoặc quý) để duy trì chiến lược.
                 </p>
             </div>
         """, unsafe_allow_html=True)
@@ -231,7 +254,7 @@ def render_portfolio_analysis_page():
             st.markdown("**📋 Bảng Tỷ Trọng**")
             st.dataframe(
                 weights_df.style.format({'Tỷ Trọng': '{:.2f}%'}),
-                use_container_width=True,
+                width='stretch',
                 height=350
             )
         
@@ -258,7 +281,34 @@ def render_portfolio_analysis_page():
                 ),
                 margin=dict(t=60, b=80, l=20, r=20)
             )
-            st.plotly_chart(fig_pie, use_container_width=True)
+            st.plotly_chart(fig_pie, width='stretch')
+        
+        # AI Analysis Button for Portfolio Allocation
+        if st.button("🤖 AI Phân Tích Phân Bổ Danh Mục", key="analyze_allocation"):
+            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+                top_weight_coin = weights_df.index[0]
+                top_weight = weights_df['Tỷ Trọng'].iloc[0]
+                min_weight_coin = weights_df.index[-1]
+                min_weight = weights_df['Tỷ Trọng'].iloc[-1]
+                concentration = weights_df['Tỷ Trọng'].head(3).sum()
+                
+                chart_data = {
+                    "strategy_name": strategy,
+                    "coin_count": len(weights_df),
+                    "top_weight_coin": top_weight_coin,
+                    "top_weight": top_weight,
+                    "min_weight_coin": min_weight_coin,
+                    "min_weight": min_weight,
+                    "concentration": concentration
+                }
+                
+                analysis = chart_analyzer.analyze_chart(
+                    coin="portfolio",
+                    chart_type="portfolio_allocation",
+                    chart_data=chart_data,
+                    chart_title=f"Phân Bổ Danh Mục - {strategy}"
+                )
+                st.markdown(analysis)
     
     # Recommendations
     st.markdown("---")

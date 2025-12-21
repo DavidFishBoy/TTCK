@@ -54,18 +54,21 @@ def render_price_volume_page(coin: str):
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Này Hiển Thị Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Giá Kết Hợp Đường Trung Bình Động</h4>
             <p style='margin: 0; color: #ccc;'>
-                Giá đóng cửa cùng với 3 đường trung bình động (MA). MA giúp xác định xu hướng 
-                và các vùng hỗ trợ/kháng cự tiềm năng.
+                Biểu đồ hiển thị giá đóng cửa (đường xanh) cùng với 3 đường trung bình động (MA - Moving Average). 
+                MA là công cụ phân tích kỹ thuật phổ biến nhất, giúp lọc nhiễu ngắn hạn và xác định xu hướng thị trường.
             </p>
-            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Cách Đọc</h4>
-            <ul style='margin: 0; color: #ccc; padding-left: 1.5rem;'>
-                <li><strong>MA20</strong>: Xu hướng ngắn hạn (20 ngày)</li>
-                <li><strong>MA50</strong>: Xu hướng trung hạn (50 ngày)</li>
-                <li><strong>MA200</strong>: Xu hướng dài hạn (200 ngày)</li>
-                <li>Giá trên MA → Xu hướng tăng | Giá dưới MA → Xu hướng giảm</li>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>MA20 (đường cam)</strong>: Trung bình 20 ngày gần nhất - phản ánh xu hướng ngắn hạn, phù hợp cho trader</li>
+                <li><strong>MA50 (đường xanh lá)</strong>: Trung bình 50 ngày - xu hướng trung hạn, cân bằng giữa độ nhạy và ổn định</li>
+                <li><strong>MA200 (đường đỏ)</strong>: Trung bình 200 ngày - xu hướng dài hạn, được các nhà đầu tư tổ chức theo dõi</li>
             </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Quy tắc đọc:</strong> Khi giá nằm TRÊN đường MA → thị trường đang trong xu hướng tăng. 
+                Khi giá nằm DƯỚI đường MA → xu hướng giảm. <strong>Golden Cross</strong> (MA20 cắt lên MA50) là tín hiệu mua mạnh; 
+                <strong>Death Cross</strong> (MA20 cắt xuống MA50) là tín hiệu bán.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -109,7 +112,7 @@ def render_price_volume_page(coin: str):
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Trend Analysis
     current_price = df['close'].iloc[-1]
@@ -172,10 +175,19 @@ def render_price_volume_page(coin: str):
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Khối Lượng Cho Biết Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Phân Tích Mối Quan Hệ Giá - Khối Lượng</h4>
             <p style='margin: 0; color: #ccc;'>
-                Khối lượng cao = Nhiều giao dịch = Sự quan tâm mạnh từ thị trường.
-                Đột biến khối lượng thường báo hiệu sự thay đổi xu hướng tiềm năng.
+                Biểu đồ trên hiển thị giá (trên) và khối lượng giao dịch (dưới). Khối lượng là số lượng coin được mua bán trong một ngày - 
+                đây là chỉ báo quan trọng về sức mạnh của xu hướng và sự quan tâm của thị trường.
+            </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Cột xanh lá</strong>: Ngày giá tăng - khối lượng cao + giá tăng = xu hướng tăng mạnh</li>
+                <li><strong>Cột đỏ</strong>: Ngày giá giảm - khối lượng cao + giá giảm = áp lực bán mạnh</li>
+                <li><strong>Đột biến khối lượng</strong>: Thường xảy ra trước khi xu hướng đảo chiều hoặc breakout</li>
+            </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Quy tắc:</strong> Xu hướng tăng khỏe mạnh cần khối lượng tăng dần. 
+                Nếu giá tăng nhưng khối lượng giảm → cảnh báo xu hướng yếu đi (divergence).
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -214,7 +226,7 @@ def render_price_volume_page(coin: str):
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Volume Spike Detection
     st.markdown("---")
@@ -275,10 +287,19 @@ def render_price_volume_page(coin: str):
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Này Cho Biết Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Histogram Phân Phối Lợi Nhuận Hàng Ngày</h4>
             <p style='margin: 0; color: #ccc;'>
-                Histogram hiển thị tần suất các mức lợi nhuận hàng ngày. 
-                Phân phối rộng = Biến động cao. Phân phối hẹp = Ổn định hơn.
+                Biểu đồ histogram hiển thị tần suất xuất hiện của các mức lợi nhuận/lỗ hàng ngày (% thay đổi giá). 
+                Đường thẳng đứng màu trắng là mốc 0%, đường vàng là mức lợi nhuận trung bình.
+            </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Phân phối rộng (nhiều cột xa tâm)</strong>: Coin có biến động cao, rủi ro lớn nhưng tiềm năng lợi nhuận cao</li>
+                <li><strong>Phân phối hẹp (cột tập trung quanh 0%)</strong>: Coin ổn định hơn, phù hợp cho nhà đầu tư thận trọng</li>
+                <li><strong>Đuôi bên trái dài</strong>: Có những ngày lỗ rất nặng (tail risk cao)</li>
+                <li><strong>Đuôi bên phải dài</strong>: Có những ngày tăng đột biến (upside potential)</li>
+            </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Ý nghĩa:</strong> Nếu lợi nhuận TB dương và % ngày tăng > 50% → coin có xu hướng tăng nhẹ về dài hạn.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -305,7 +326,7 @@ def render_price_volume_page(coin: str):
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Summary stats
     positive_days = int((returns > 0).sum())

@@ -479,6 +479,120 @@ Chi tiết từng cluster:
 2. **Cluster hấp dẫn nhất**: Nhóm nào có tiềm năng đầu tư tốt nhất?
 3. **Cluster rủi ro nhất**: Nhóm nào nên tránh hoặc cẩn trọng?
 4. **Đa dạng hóa**: Nên chọn coin từ các cluster khác nhau như thế nào?
+""",
+
+    # -------------------------------------------------------------------------
+    # Market Overview
+    # -------------------------------------------------------------------------
+    
+    "returns_heatmap": """## PHÂN TÍCH BẢN ĐỒ NHIỆT LỢI NHUẬN
+
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- Số coin phân tích: {coin_count}
+- Khoảng thời gian: 7 ngày, 30 ngày, 90 ngày
+- Coin có lợi nhuận cao nhất 30D: {best_coin_30d} ({best_return_30d:+.1f}%)
+- Coin có lợi nhuận thấp nhất 30D: {worst_coin_30d} ({worst_return_30d:+.1f}%)
+- Số coin tăng trong 30D: {coins_up_30d}/{coin_count}
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Xu hướng thị trường**: Đa số coin đang tăng hay giảm?
+2. **Coin nổi bật**: Coin nào đang outperform market?
+3. **Coin đáng chú ý**: Coin nào đang underperform nhưng có tiềm năng recovery?
+4. **Khuyến nghị**: Nên tập trung vào coin nào trong giai đoạn này?
+""",
+
+    "coin_ranking": """## PHÂN TÍCH XẾP HẠNG COIN
+
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- Tiêu chí xếp hạng: {ranking_metric}
+- Top 3 coin: {top_3}
+- Bottom 3 coin: {bottom_3}
+- Khoảng cách giữa top và bottom: {range_value}
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Phân tích top performers**: Tại sao các coin này dẫn đầu?
+2. **Cơ hội ở bottom**: Có coin nào đang bị undervalue không?
+3. **Risk assessment**: Coin nào có rủi ro cao nhất?
+4. **Khuyến nghị phân bổ**: Nên ưu tiên coin nào trong danh mục?
+""",
+
+    "market_breadth": """## PHÂN TÍCH ĐỘ RỘNG THỊ TRƯỜNG
+
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- % coin tăng 7 ngày: {pct_up_7d:.1f}%
+- % coin tăng 30 ngày: {pct_up_30d:.1f}%
+- % coin tăng 90 ngày: {pct_up_90d:.1f}%
+- Xu hướng độ rộng: {breadth_trend}
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Sức khỏe thị trường**: Xu hướng có được đa số coin xác nhận không?
+2. **Divergence warning**: Có dấu hiệu phân kỳ giữa BTC và altcoin không?
+3. **Timing**: Đây là thời điểm nên aggressive hay defensive?
+4. **Chiến lược**: Long only, long-short hay stay cash?
+""",
+
+    "liquidity_analysis": """## PHÂN TÍCH THANH KHOẢN THỊ TRƯỜNG
+
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- Coin thanh khoản cao nhất: {top_liquid_coin} ({top_liquid_ratio:.2f}%)
+- Coin thanh khoản thấp nhất: {bottom_liquid_coin} ({bottom_liquid_ratio:.2f}%)
+- Thanh khoản trung bình: {avg_liquidity:.2f}%
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Đánh giá thanh khoản**: Thị trường có đủ thanh khoản không?
+2. **Rủi ro slippage**: Coin nào có rủi ro trượt giá cao?
+3. **Khuyến nghị giao dịch**: 
+   - Nên trade size bao nhiêu cho từng coin?
+   - Coin nào phù hợp cho large positions?
+4. **Cảnh báo**: Coin nào nên tránh do thanh khoản thấp?
+""",
+
+    # -------------------------------------------------------------------------
+    # Additional Charts
+    # -------------------------------------------------------------------------
+
+    "portfolio_allocation": """## PHÂN TÍCH PHÂN BỔ DANH MỤC
+
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- Chiến lược: {strategy_name}
+- Số coin trong danh mục: {coin_count}
+- Coin có tỷ trọng cao nhất: {top_weight_coin} ({top_weight:.1f}%)
+- Coin có tỷ trọng thấp nhất: {min_weight_coin} ({min_weight:.1f}%)
+- Concentration ratio (top 3): {concentration:.1f}%
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Đánh giá đa dạng hóa**: Danh mục có đủ đa dạng không?
+2. **Risk concentration**: Có coin nào chiếm quá nhiều tỷ trọng không?
+3. **Khuyến nghị điều chỉnh**: Có nên rebalance không? Như thế nào?
+4. **Phù hợp với profile**: Danh mục này phù hợp với nhà đầu tư nào?
+""",
+
+    "predictions_vs_actual": """## PHÂN TÍCH DỰ ĐOÁN VS GIÁ THỰC TẾ
+
+**Coin:** {coin}
+**Tiêu đề:** {chart_title}
+
+### DỮ LIỆU TỪ BIỂU ĐỒ:
+- Các mô hình được chọn: {selected_models}
+- Khoảng thời gian test: {test_period} ngày
+- Mô hình có MAE thấp nhất: {best_mae_model}
+- Mô hình có direction accuracy cao nhất: {best_direction_model}
+
+### YÊU CẦU PHÂN TÍCH:
+1. **Đánh giá độ chính xác**: Mô hình nào bám sát giá thực tế nhất?
+2. **Phân tích lag**: Mô hình nào bị trễ pha (lagging) nhiều nhất?
+3. **Điểm mạnh/yếu**: Mỗi mô hình tốt nhất trong điều kiện nào?
+4. **Khuyến nghị sử dụng**: Nên chọn mô hình nào cho trading/investing?
 """
 }
 
