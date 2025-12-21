@@ -56,10 +56,16 @@ def render_quant_metrics_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bảng Này Hiển Thị Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bảng Xếp Hạng Coin Theo Chỉ Số Định Lượng</h4>
             <p style='margin: 0; color: #ccc;'>
-                Bảng xếp hạng các coin theo chỉ số bạn chọn. Cột "Xếp Hạng" hiển thị thứ tự từ tốt nhất đến kém nhất.
+                Bảng xếp hạng các coin theo chỉ số định lượng bạn chọn. Cột "Xếp Hạng" hiển thị thứ tự từ tốt nhất đến kém nhất.
+                Các chỉ số này được nhà đầu tư chuyên nghiệp sử dụng để đánh giá hiệu suất điều chỉnh rủi ro.
             </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Sharpe Ratio > 1</strong>: Lợi nhuận vượt trội so với rủi ro - coin đáng đầu tư</li>
+                <li><strong>Sortino Ratio cao</strong>: Coin có khả năng kiểm soát downside risk tốt</li>
+                <li><strong>Max Drawdown thấp</strong>: Coin ít biến động, ít rủi ro mất vốn lớn</li>
+            </ul>
         </div>
     """, unsafe_allow_html=True)
     
@@ -109,7 +115,7 @@ def render_quant_metrics_page():
             'Calmar': '{:.2f}',
             'Max DD': '{:.2f}%'
         }),
-        use_container_width=True,
+        width='stretch',
         height=400
     )
     

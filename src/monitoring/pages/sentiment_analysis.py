@@ -339,7 +339,7 @@ def render_sentiment_analysis_page():
         )
     
     with col3:
-        refresh_data = st.button("🔄 Cập nhật", use_container_width=True)
+        refresh_data = st.button("🔄 Cập nhật", width='stretch')
     
     st.markdown("---")
     
@@ -418,7 +418,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     """, unsafe_allow_html=True)
     
     fig_timeline = create_fng_timeline_chart(sentiment_df)
-    st.plotly_chart(fig_timeline, use_container_width=True)
+    st.plotly_chart(fig_timeline, width='stretch')
     
     # AI Analysis Button for Fear & Greed Chart
     chart_analyzer = get_chart_analyzer()
@@ -463,7 +463,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     
     if "return" in merged_df.columns and not merged_df["return"].isna().all():
         fig_overlay = create_sentiment_return_overlay(merged_df, "fng_value", selected_coin.upper())
-        st.plotly_chart(fig_overlay, use_container_width=True)
+        st.plotly_chart(fig_overlay, width='stretch')
     else:
         st.warning(f"Không có dữ liệu giá cho {selected_coin.upper()}")
     
@@ -475,10 +475,10 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
         corr_df = calculate_lag_correlations(merged_df, "fng_value")
         if not corr_df.empty:
             fig_corr = create_lag_correlation_chart(corr_df)
-            st.plotly_chart(fig_corr, use_container_width=True)
+            st.plotly_chart(fig_corr, width='stretch')
             
             with st.expander("📋 Bảng chi tiết"):
-                st.dataframe(corr_df.style.format({"Correlation": "{:.4f}", "P-Value": "{:.4f}"}), use_container_width=True)
+                st.dataframe(corr_df.style.format({"Correlation": "{:.4f}", "P-Value": "{:.4f}"}), width='stretch')
     
     # Event study
     st.markdown("---")
@@ -497,7 +497,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
                 if fear_stats:
                     st.dataframe(pd.DataFrame(fear_stats).T.style.format({
                         "Median Return (%)": "{:.2f}", "Mean Return (%)": "{:.2f}", "Hit Rate (%)": "{:.1f}"
-                    }), use_container_width=True)
+                    }), width='stretch')
             
             with col2:
                 st.markdown("#### 🟢 Extreme Greed (≥ 75)")
@@ -506,7 +506,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
                 if greed_stats:
                     st.dataframe(pd.DataFrame(greed_stats).T.style.format({
                         "Median Return (%)": "{:.2f}", "Mean Return (%)": "{:.2f}", "Hit Rate (%)": "{:.1f}"
-                    }), use_container_width=True)
+                    }), width='stretch')
     
     # Distribution
     st.markdown("---")
@@ -516,13 +516,13 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     with col1:
         fig_hist = px.histogram(sentiment_df, x="fng_value", nbins=20, color_discrete_sequence=["#667eea"])
         fig_hist.update_layout(template="plotly_dark", height=300, title="Phân phối giá trị")
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width='stretch')
     
     with col2:
         label_counts = sentiment_df["fng_label"].value_counts()
         fig_pie = px.pie(values=label_counts.values, names=label_counts.index, color_discrete_sequence=px.colors.sequential.RdBu)
         fig_pie.update_layout(template="plotly_dark", height=300, title="Tỷ lệ trạng thái")
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width='stretch')
 
 
 def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, refresh: bool):
@@ -661,7 +661,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
         fig_timeline.update_yaxes(title_text="Số tin", secondary_y=True)
         fig_timeline.update_xaxes(gridcolor="rgba(255,255,255,0.1)")
         
-        st.plotly_chart(fig_timeline, use_container_width=True)
+        st.plotly_chart(fig_timeline, width='stretch')
         
         # Daily analysis
         if len(daily_df) >= 2:
@@ -764,7 +764,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
             barmode="overlay", showlegend=True,
             legend=dict(orientation="h", yanchor="bottom", y=1.02)
         )
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width='stretch')
     
     with col2:
         # Enhanced pie chart
@@ -785,7 +785,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
             showlegend=False,
             annotations=[dict(text=f"{total_count}<br>tin", x=0.5, y=0.5, font_size=16, showarrow=False)]
         )
-        st.plotly_chart(fig_pie, use_container_width=True)
+        st.plotly_chart(fig_pie, width='stretch')
     
     # Distribution insight
     dominant = label_counts.idxmax()
@@ -837,7 +837,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
         yaxis=dict(range=[-0.5, 0.5], dtick=0.1),
         xaxis_tickangle=-45
     )
-    st.plotly_chart(fig_source, use_container_width=True)
+    st.plotly_chart(fig_source, width='stretch')
     
     # Source insight
     most_positive = source_stats.loc[source_stats["Avg Sentiment"].idxmax()]

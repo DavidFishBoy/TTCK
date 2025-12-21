@@ -104,7 +104,7 @@ def render_factor_analysis_page():
         
         fig.update_traces(textposition='top center', textfont_size=10)
         fig.update_layout(template="plotly_dark")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # Quadrant Analysis
         st.markdown("**📊 Phân Tích Theo Góc Phần Tư:**")
@@ -191,7 +191,7 @@ def render_factor_analysis_page():
                     'volatility': '{:.2f}%',
                     'size': '{:.2f}'
                 }),
-                use_container_width=True
+                width='stretch'
             )
     
     # AI Analysis Button for Clusters
@@ -248,7 +248,7 @@ def render_factor_analysis_page():
             'Quy Mô': '{:.2f}',
             'Thanh Khoản': '{:.4f}'
         }),
-        use_container_width=True
+        width='stretch'
     )
     
     # Insights

@@ -50,17 +50,22 @@ def render_correlation_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Ma Trận Này Cho Biết Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Ma Trận Tương Quan Giữa Các Coin</h4>
             <p style='margin: 0; color: #ccc;'>
-                Ma trận hiển thị hệ số tương quan giữa từng cặp coin. Giá trị từ -1 đến +1.
+                Ma trận hiển thị hệ số tương quan giữa từng cặp coin, dao động từ -1 đến +1. Tương quan đo lường mức độ 
+                hai coin di chuyển cùng chiều hay ngược chiều nhau - đây là cơ sở của việc đa dạng hóa danh mục.
             </p>
-            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Cách Đọc</h4>
-            <ul style='margin: 0; color: #ccc; padding-left: 1.5rem;'>
-                <li><strong>+1.0 (Đỏ đậm)</strong>: Tương quan hoàn hảo - di chuyển cùng chiều 100%</li>
-                <li><strong>0.0 (Trắng)</strong>: Không tương quan - di chuyển độc lập</li>
-                <li><strong>-1.0 (Xanh đậm)</strong>: Tương quan nghịch - di chuyển ngược chiều</li>
-                <li><strong>Đa dạng hóa tốt</strong>: Chọn coin có tương quan thấp (<0.5)</li>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>+1.0 (Đỏ đậm)</strong>: Tương quan hoàn hảo - 2 coin luôn di chuyển cùng chiều 100%. Không có lợi ích đa dạng hóa</li>
+                <li><strong>0.0 (Trắng)</strong>: Không tương quan - 2 coin di chuyển độc lập. Lý tưởng để đa dạng hóa</li>
+                <li><strong>-1.0 (Xanh đậm)</strong>: Tương quan nghịch - 2 coin di chuyển ngược chiều. Tốt nhất cho hedge rủi ro</li>
+                <li><strong>< 0.5</strong>: Tương quan thấp - tốt cho đa dạng hóa danh mục</li>
+                <li><strong>> 0.7</strong>: Tương quan cao - 2 coin gần như giống nhau, nên chọn 1 trong 2</li>
             </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Ứng dụng:</strong> Để xây dựng danh mục an toàn, hãy chọn các coin có tương quan thấp với nhau (< 0.5). 
+                Khi 1 coin giảm, các coin khác có thể tăng và bù đắp.
+            </p>
         </div>
     """, unsafe_allow_html=True)
     
@@ -87,7 +92,7 @@ def render_correlation_page():
         template="plotly_dark"
     )
     
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Correlation Analysis Summary
     avg_corr = corr_matrix.mean().mean()
@@ -146,10 +151,20 @@ def render_correlation_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Tại Sao So Với Bitcoin?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Tương Quan Lăn Với Bitcoin - Theo Dõi Theo Thời Gian</h4>
             <p style='margin: 0; color: #ccc;'>
-                Bitcoin là coin dẫn dắt thị trường. Tương quan cao với BTC = coin theo sát thị trường chung.
-                Tương quan thấp hoặc âm = coin có thể hoạt động khác biệt, tốt cho đa dạng hóa.
+                Biểu đồ hiển thị hệ số tương quan 30 ngày giữa các altcoin và Bitcoin theo thời gian. 
+                Bitcoin là coin dẫn dắt thị trường - khi BTC tăng/giảm, hầu hết altcoin cũng theo.
+            </p>
+            <ul style='margin: 0.5rem 0 0 0; color: #ccc; padding-left: 1.5rem;'>
+                <li><strong>Tương quan cao (> 0.7)</strong>: Altcoin theo sát Bitcoin - rủi ro hệ thống cao, khó đa dạng hóa</li>
+                <li><strong>Tương quan thấp (< 0.3)</strong>: Altcoin hoạt động độc lập - có thể outperform hoặc underperform BTC</li>
+                <li><strong>Tương quan âm</strong>: Hiếm gặp nhưng lý tưởng cho hedge trong thị trường giảm</li>
+                <li><strong>Đường vàng (0.5)</strong>: Ngưỡng tương quan cao - coin trên đường này phụ thuộc nhiều vào BTC</li>
+            </ul>
+            <p style='margin: 0.5rem 0 0 0; color: #ccc;'>
+                <strong>Ứng dụng:</strong> Trong thị trường bull, chọn coin tương quan cao với BTC sẽ hưởng lợi. 
+                Trong thị trường bear, tìm coin tương quan thấp để bảo vệ danh mục.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -182,7 +197,7 @@ def render_correlation_page():
             template="plotly_dark"
         )
         
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
         
         # AI Analysis Button for Rolling Correlation
         if st.button("🤖 AI Phân Tích Tương Quan Lăn Với BTC", key="analyze_rolling_corr"):
