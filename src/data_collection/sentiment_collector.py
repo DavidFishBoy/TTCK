@@ -1,10 +1,3 @@
-# src/data_collection/sentiment_collector.py
-
-"""
-Social Sentiment Data Collector - Fear & Greed Index.
-Sử dụng API miễn phí từ Alternative.me để thu thập dữ liệu tâm lý thị trường.
-"""
-
 import asyncio
 import logging
 from datetime import datetime

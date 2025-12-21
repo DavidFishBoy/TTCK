@@ -1,9 +1,4 @@
-# src/monitoring/pages/sentiment_analysis.py
-
-"""
-Social Sentiment Analysis Page - Fear & Greed Index + News Sentiment.
-Phân tích tâm lý thị trường dựa trên nhiều nguồn dữ liệu.
-"""
+"""Sentiment Analysis Page - Fear & Greed Index + News Sentiment."""
 
 import streamlit as st
 import pandas as pd

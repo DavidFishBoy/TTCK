@@ -1,8 +1,4 @@
-# src/monitoring/pages/eda_volatility_risk.py
-
-"""
-EDA: Volatility & Risk Analysis Page - Trang phân tích biến động và rủi ro
-"""
+"""EDA: Volatility & Risk Analysis Page."""
 
 import streamlit as st
 import plotly.graph_objects as go

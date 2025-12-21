@@ -1,8 +1,4 @@
-# src/monitoring/pages/eda_price_volume.py
-
-"""
-EDA: Price & Volume Analysis Page - Trang phân tích giá và khối lượng
-"""
+"""EDA: Price & Volume Analysis Page."""
 
 import streamlit as st
 import pandas as pd

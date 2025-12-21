@@ -1,5 +1,3 @@
-# src/visualization/visualizer_notebook.py
-
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional

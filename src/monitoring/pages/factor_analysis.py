@@ -1,8 +1,4 @@
-# src/monitoring/pages/factor_analysis.py
-
-"""
-Factor Analysis Page - Trang phân tích nhân tố
-"""
+"""Factor Analysis Page - Phân tích nhân tố."""
 
 import streamlit as st
 import plotly.express as px

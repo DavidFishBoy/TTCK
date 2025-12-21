@@ -1,13 +1,8 @@
-# src/monitoring/pages/market_overview.py
-
-"""
-Market Overview Page - Tổng quan thị trường, xếp hạng và phân tích.
-"""
+"""Market Overview Page - Tổng quan thị trường và xếp hạng."""
 
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 import sys
 from pathlib import Path
 
@@ -261,15 +256,6 @@ def render_market_overview_page():
         )
         
         st.plotly_chart(fig, use_container_width=True)
-        
-        # st.dataframe(
-        #     liq_df.style.format({
-        #         'avg_volume_7d': '{:,.0f}',
-        #         'market_cap': '{:,.0f}',
-        #         'liquidity_ratio': '{:.4f}%'
-        #     }),
-        #     use_container_width=True
-        # )
     else:
         st.warning("Không có dữ liệu vốn hóa để phân tích thanh khoản")
     

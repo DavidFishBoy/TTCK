@@ -1,10 +1,3 @@
-# src/data_collection/news_collector.py
-
-"""
-News Sentiment Data Collector - NewsAPI Integration.
-Thu thập tin tức crypto và chấm sentiment bằng VADER.
-"""
-
 import asyncio
 import logging
 from datetime import datetime, timedelta

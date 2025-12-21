@@ -1,8 +1,4 @@
-# src/monitoring/pages/home.py
-
-"""
-Home Page - Trang chủ giới thiệu các mục phân tích.
-"""
+"""Home Page - Trang chủ giới thiệu dashboard."""
 
 import streamlit as st
 import sys

@@ -1,12 +1,4 @@
-# src/analysis/financial_metrics.py
-
-"""
-Financial metrics calculation module for crypto analysis.
-
-Provides functions to calculate:
-- Risk metrics: Volatility, Drawdown, VaR, CVaR
-- Performance metrics: Returns, CAGR, Sharpe, Sortino, Calmar
-"""
+"""Financial metrics: volatility, drawdown, VaR, Sharpe, Sortino, Calmar ratios."""
 
 import numpy as np
 import pandas as pd

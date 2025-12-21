@@ -1,8 +1,4 @@
-# src/training/lstm_model.py
-
-"""
-Improved LSTM model with attention mechanism and better regularization.
-"""
+"""LSTM model with attention mechanism for crypto prediction."""
 
 import json
 import logging

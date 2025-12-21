@@ -1,15 +1,4 @@
-# src/analysis/market_analyzer.py
-
-"""
-Market analyzer module for multi-coin analysis.
-
-Provides functions for:
-- Loading and aligning data from multiple coins
-- Market breadth analysis
-- Correlation analysis
-- Volume spike detection
-- Market regime identification
-"""
+"""Market analyzer: multi-coin data loading, correlation, breadth, regime analysis."""
 
 import numpy as np
 import pandas as pd

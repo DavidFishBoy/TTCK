@@ -1,5 +1,4 @@
-# src/utils/config.py
-
+"""Configuration manager for loading and validating YAML config."""
 import logging
 from pathlib import Path
 from typing import Dict, Any, Union, Optional

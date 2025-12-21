@@ -1,5 +1,4 @@
-# src/preprocessing/pipeline.py
-
+"""Data preprocessing pipeline: feature engineering, scaling, sequence preparation."""
 import logging
 from pathlib import Path
 from typing import Dict, Tuple, Union, Optional

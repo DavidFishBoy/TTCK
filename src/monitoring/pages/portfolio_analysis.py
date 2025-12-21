@@ -1,8 +1,4 @@
-# src/monitoring/pages/portfolio_analysis.py
-
-"""
-Portfolio Analysis Page - Trang phân tích danh mục đầu tư
-"""
+"""Portfolio Analysis Page - Phân tích danh mục đầu tư."""
 
 import streamlit as st
 import pandas as pd

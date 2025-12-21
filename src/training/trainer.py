@@ -1,5 +1,4 @@
-# src/training/trainer.py
-
+"""Model trainer with callbacks and history saving."""
 import json
 import logging
 from datetime import datetime

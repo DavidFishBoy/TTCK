@@ -1,8 +1,4 @@
-# src/monitoring/pages/quant_metrics.py
-
-"""
-Quant Metrics Page - Trang chỉ số định lượng và so sánh hiệu suất điều chỉnh rủi ro
-"""
+"""Quant Metrics Page - Chỉ số định lượng và so sánh hiệu suất."""
 
 import streamlit as st
 import pandas as pd

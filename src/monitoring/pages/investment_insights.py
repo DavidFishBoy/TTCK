@@ -1,8 +1,4 @@
-# src/monitoring/pages/investment_insights.py
-
-"""
-Investment Insights Page - Trang khuyến nghị đầu tư
-"""
+"""Investment Insights Page - Khuyến nghị đầu tư."""
 
 import streamlit as st
 import pandas as pd

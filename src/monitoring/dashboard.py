@@ -1,9 +1,4 @@
-# src/monitoring/dashboard.py
-
-"""
-Main dashboard entry point - Professional Crypto Analytics Dashboard.
-Bảng điều khiển phân tích tiền điện tử chuyên nghiệp.
-"""
+"""Main dashboard entry point - Professional Crypto Analytics."""
 
 import streamlit as st
 import sys

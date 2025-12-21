@@ -1,4 +1,4 @@
-# src/data_collection/data_collector.py
+"""Data collector for fetching crypto data from Binance and CryptoCompare."""
 import asyncio
 import logging
 from datetime import datetime

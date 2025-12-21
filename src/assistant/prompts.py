@@ -1,13 +1,3 @@
-# src/assistant/prompts.py
-
-"""
-Prompt templates cho ChartAnalyzer - Phân tích biểu đồ bằng GPT-4.
-Mỗi prompt được thiết kế riêng cho từng loại biểu đồ trong dashboard crypto.
-"""
-
-# ============================================================================
-# SYSTEM PROMPT - Prompt chung cho tất cả các phân tích
-# ============================================================================
 
 SYSTEM_PROMPT = """Bạn là chuyên gia phân tích đầu tư cryptocurrency với hơn 10 năm kinh nghiệm.
 

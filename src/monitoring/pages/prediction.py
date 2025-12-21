@@ -1,8 +1,4 @@
-# src/monitoring/pages/prediction.py
-
-"""
-Prediction Page - Trang dự đoán giá sử dụng nhiều mô hình ML.
-"""
+"""Prediction Page - Dự đoán giá với nhiều mô hình ML."""
 
 import streamlit as st
 import pandas as pd

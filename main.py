@@ -1,5 +1,4 @@
-# main.py
-
+"""Main entry point for data collection, training, and prediction pipeline."""
 import argparse
 import asyncio
 import json

@@ -1,14 +1,4 @@
-# src/analysis/portfolio_engine.py
-
-"""
-Portfolio construction and backtesting module.
-
-Provides functions for:
-- Different portfolio weighting strategies
-- Portfolio backtesting
-- Risk contribution analysis
-- Rebalancing simulation
-"""
+"""Portfolio engine: weighting strategies, backtesting, risk contribution."""
 
 import numpy as np
 import pandas as pd

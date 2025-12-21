@@ -1,13 +1,4 @@
-# src/analysis/factor_analyzer.py
-
-"""
-Factor analysis module for cryptocurrency analysis.
-
-Provides functions for:
-- Factor calculation (momentum, size, liquidity, volatility)
-- Factor-based coin clustering
-- Factor scatter plot data preparation
-"""
+"""Factor analysis: momentum, size, liquidity, volatility factors and clustering."""
 
 import numpy as np
 import pandas as pd

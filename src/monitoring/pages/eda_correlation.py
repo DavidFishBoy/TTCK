@@ -1,8 +1,4 @@
-# src/monitoring/pages/eda_correlation.py
-
-"""
-EDA: Correlation Analysis Page - Trang phân tích tương quan
-"""
+"""EDA: Correlation Analysis Page."""
 
 import streamlit as st
 import plotly.graph_objects as go

@@ -1,9 +1,4 @@
-# src/assistant/chart_analyzer.py
-
-"""
-ChartAnalyzer - Phân tích biểu đồ bằng GPT-4 với hệ thống cache.
-Tích hợp vào dashboard Streamlit để cung cấp phân tích AI cho mỗi biểu đồ.
-"""
+"""ChartAnalyzer - GPT-4 chart analysis with caching for Streamlit."""
 
 import json
 import hashlib

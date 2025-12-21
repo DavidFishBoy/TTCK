@@ -1,5 +1,3 @@
-# src/analysis/test_analysis.py
-
 """
 Simple test script to verify analysis modules are working correctly.
 Run this script to test the new analysis modules with real data.
