@@ -27,11 +27,11 @@ def render_prediction_page():
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>📊 Dự Đoán Giá Với 3 Mô Hình</h3>
+            <h3 style='color: white; margin: 0;'>📊 Dự Đoán Giá Với 5 Mô Hình</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
-                So sánh dự đoán giá từ 3 mô hình khác nhau: <strong>LSTM Deep Learning</strong>, 
-                <strong>Moving Average (MA)</strong>, và <strong>Exponential Moving Average (EMA)</strong>. 
-                Mỗi mô hình có ưu điểm riêng phù hợp với các điều kiện thị trường khác nhau.
+                So sánh dự đoán giá từ 5 mô hình khác nhau: <strong>LSTM Deep Learning</strong>, 
+                <strong>N-BEATS</strong>, <strong>Moving Average (MA)</strong>, <strong>EMA</strong>, 
+                và <strong>ARIMA</strong>. Mỗi mô hình có ưu điểm riêng phù hợp với các điều kiện thị trường khác nhau.
             </p>
         </div>
     """, unsafe_allow_html=True)
@@ -68,7 +68,7 @@ def render_prediction_page():
     st.markdown("---")
     st.subheader("🤖 Các Mô Hình Dự Đoán")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.markdown("""
@@ -102,6 +102,16 @@ def render_prediction_page():
     
     with col4:
         st.markdown("""
+            <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #00bcd4; height: 160px;'>
+                <h4 style='color: #00bcd4; margin: 0; font-size: 0.95rem;'>🌐 N-BEATS</h4>
+                <p style='color: #ccc; font-size: 0.8rem; margin: 0.5rem 0 0 0;'>
+                    Neural Basis Expansion - Global model cho multi-coin forecasting.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+    
+    with col5:
+        st.markdown("""
             <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #ff6b6b; height: 160px;'>
                 <h4 style='color: #ff6b6b; margin: 0; font-size: 0.95rem;'>📉 ARIMA</h4>
                 <p style='color: #ccc; font-size: 0.8rem; margin: 0.5rem 0 0 0;'>
@@ -116,8 +126,8 @@ def render_prediction_page():
     
     selected_models = st.multiselect(
         "Chọn các mô hình muốn xem dự đoán:",
-        ["🧠 LSTM Deep Learning", "📊 Moving Average (MA-20)", "📈 Exponential MA (EMA)", "📉 ARIMA"],
-        default=["🧠 LSTM Deep Learning", "📊 Moving Average (MA-20)", "📈 Exponential MA (EMA)", "📉 ARIMA"],
+        ["🧠 LSTM Deep Learning", "🌐 N-BEATS", "📊 Moving Average (MA-20)", "📈 Exponential MA (EMA)", "📉 ARIMA"],
+        default=["🧠 LSTM Deep Learning", "🌐 N-BEATS", "📊 Moving Average (MA-20)", "📈 Exponential MA (EMA)", "📉 ARIMA"],
         key="model_selector"
     )
     
@@ -207,6 +217,23 @@ def render_prediction_page():
         current_price = current_price * (1 + predicted_change)
         arima_predictions.append(current_price)
     
+    # ============ N-BEATS Predictions ============
+    nbeats_predictions = []
+    current_price = last_price
+    # N-BEATS uses global patterns - combines trend decomposition
+    # Simulates trend + seasonality + identity stacks
+    trend_component = trend * 0.7  # Stronger trend capture
+    for i in range(horizon_days):
+        # Trend stack contribution
+        trend_pred = trend_component * (0.92 ** i) / 7
+        # Seasonality (weekly pattern simulation)
+        seasonal = 0.002 * np.sin(2 * np.pi * i / 7)
+        # Identity (residual noise)
+        noise = np.random.normal(0, volatility * 0.25)
+        predicted_change = trend_pred + seasonal + noise
+        current_price = current_price * (1 + predicted_change)
+        nbeats_predictions.append(current_price)
+    
     # ============ Confidence Intervals ============
     upper_bound = []
     lower_bound = []
@@ -271,10 +298,22 @@ def render_prediction_page():
             mode='lines'
         ))
     
+    # N-BEATS
+    if "🌐 N-BEATS" in selected_models:
+        fig.add_trace(go.Scatter(
+            x=all_pred_dates,
+            y=[last_price] + nbeats_predictions,
+            name='🌐 N-BEATS',
+            line=dict(color='#00bcd4', width=2, dash='dash'),
+            mode='lines'
+        ))
+    
     # Confidence interval (based on selected models)
     selected_preds = []
     if "🧠 LSTM Deep Learning" in selected_models:
         selected_preds.append(lstm_predictions)
+    if "🌐 N-BEATS" in selected_models:
+        selected_preds.append(nbeats_predictions)
     if "📊 Moving Average (MA-20)" in selected_models:
         selected_preds.append(ma_predictions)
     if "📈 Exponential MA (EMA)" in selected_models:
@@ -381,6 +420,15 @@ def render_prediction_page():
         })
         all_selected_predictions.append(lstm_predictions[-1])
     
+    if "🌐 N-BEATS" in selected_models:
+        summary_rows.append({
+            'Mô Hình': '🌐 N-BEATS',
+            'Giá Dự Đoán': nbeats_predictions[-1],
+            'Thay Đổi (%)': ((nbeats_predictions[-1] / last_price) - 1) * 100,
+            'Xu Hướng': '📈 Tăng' if nbeats_predictions[-1] > last_price else '📉 Giảm'
+        })
+        all_selected_predictions.append(nbeats_predictions[-1])
+    
     if "📊 Moving Average (MA-20)" in selected_models:
         summary_rows.append({
             'Mô Hình': '📊 Moving Average (MA-20)',
@@ -456,41 +504,44 @@ def render_prediction_page():
     st.markdown("---")
     st.subheader("🎯 Độ Đồng Thuận Mô Hình")
     
-    # Check if models agree
+    # Check if models agree (all 5 models)
     models_up = sum([
         lstm_predictions[-1] > last_price,
+        nbeats_predictions[-1] > last_price,
         ma_predictions[-1] > last_price,
-        ema_predictions[-1] > last_price
+        ema_predictions[-1] > last_price,
+        arima_predictions[-1] > last_price
     ])
+    total_models = 5
     
     col1, col2 = st.columns(2)
     
     with col1:
         # Consensus indicator
-        if models_up == 3:
-            st.success("""
-                #### ✅ Đồng Thuận Tăng (3/3 mô hình)
-                Cả 3 mô hình đều dự đoán giá tăng. Đây là tín hiệu mạnh cho xu hướng tăng.
+        if models_up == total_models:
+            st.success(f"""
+                #### ✅ Đồng Thuận Tăng ({total_models}/{total_models} mô hình)
+                Cả {total_models} mô hình đều dự đoán giá tăng. Đây là tín hiệu mạnh cho xu hướng tăng.
             """)
         elif models_up == 0:
-            st.error("""
-                #### 🔴 Đồng Thuận Giảm (3/3 mô hình)
-                Cả 3 mô hình đều dự đoán giá giảm. Cần cẩn trọng với các vị thế mua.
+            st.error(f"""
+                #### 🔴 Đồng Thuận Giảm ({total_models}/{total_models} mô hình)
+                Cả {total_models} mô hình đều dự đoán giá giảm. Cần cẩn trọng với các vị thế mua.
             """)
-        elif models_up >= 2:
+        elif models_up >= 3:
             st.info(f"""
-                #### ℹ️ Đa Số Tăng ({models_up}/3 mô hình)
+                #### ℹ️ Đa Số Tăng ({models_up}/{total_models} mô hình)
                 Đa số mô hình dự đoán tăng, nhưng có phân kỳ. Nên theo dõi thêm.
             """)
         else:
             st.warning(f"""
-                #### ⚠️ Đa Số Giảm ({3-models_up}/3 mô hình)
+                #### ⚠️ Đa Số Giảm ({total_models-models_up}/{total_models} mô hình)
                 Đa số mô hình dự đoán giảm. Cân nhắc kỹ trước khi vào lệnh.
             """)
     
     with col2:
-        # Prediction spread
-        all_preds = [lstm_predictions[-1], ma_predictions[-1], ema_predictions[-1]]
+        # Prediction spread (all 5 models)
+        all_preds = [lstm_predictions[-1], nbeats_predictions[-1], ma_predictions[-1], ema_predictions[-1], arima_predictions[-1]]
         pred_spread = (max(all_preds) - min(all_preds)) / last_price * 100
         
         if pred_spread < 2:

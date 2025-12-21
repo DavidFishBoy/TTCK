@@ -65,7 +65,7 @@ Crypto_Prediction/
 
 2. Install dependencies:
     ```bash
-    pip install -r requirements.txt
+    pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
     ```
 
 ## Interactive Application

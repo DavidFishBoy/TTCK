@@ -1,0 +1,28 @@
+{
+    "coin": "ethereum",
+    "prediction_generated_at": "2025-12-21 13:32:00",
+    "forecast_horizon_days": 5,
+    "predictions": [
+        {
+            "day": 1,
+            "expected_price": 2976.5266193795205
+        },
+        {
+            "day": 2,
+            "expected_price": 2975.4301958425185
+        },
+        {
+            "day": 3,
+            "expected_price": 2970.789315176453
+        },
+        {
+            "day": 4,
+            "expected_price": 2964.0624949880357
+        },
+        {
+            "day": 5,
+            "expected_price": 2952.387486342007
+        }
+    ],
+    "explanation": "These predictions represent the model's best estimate of ethereum closing prices for the next 5 days, based on historical patterns and recent data."
+}

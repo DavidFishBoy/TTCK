@@ -44,26 +44,26 @@ Desktop.ini
 *.pyc
 *.pyd
 
-# Logs
-logs/
-*.log
+# # Logs
+# logs/
+# *.log
 
 # Configurations
 config.yaml.backup
 
-# Dataset files
-data/raw/
-data/processed/
-data/predict_data.csv
+# # Dataset files
+# data/raw/
+# data/processed/
+# data/predict_data.csv
 
-# Models
-models/
-*.keras
-*.h5
+# # Models
+# models/
+# *.keras
+# *.h5
 
-# Results
-results/
-*.json
+# # Results
+# results/
+# *.json
 
 # Visualizations
 visualizations/

@@ -1,0 +1,28 @@
+{
+    "coin": "pancakeswap",
+    "prediction_generated_at": "2025-12-21 13:32:12",
+    "forecast_horizon_days": 5,
+    "predictions": [
+        {
+            "day": 1,
+            "expected_price": 1.836927405655384
+        },
+        {
+            "day": 2,
+            "expected_price": 1.8363632067488822
+        },
+        {
+            "day": 3,
+            "expected_price": 1.8363739334149907
+        },
+        {
+            "day": 4,
+            "expected_price": 1.836067345993842
+        },
+        {
+            "day": 5,
+            "expected_price": 1.835129570555544
+        }
+    ],
+    "explanation": "These predictions represent the model's best estimate of pancakeswap closing prices for the next 5 days, based on historical patterns and recent data."
+}

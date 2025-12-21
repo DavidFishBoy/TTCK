@@ -103,7 +103,7 @@ data:
     pancakeswap: "CAKE"
     axieinfinity: "AXS"
     thesandbox: "SAND"
-
+#LSTM
 model:
   sequence_length: 60  # Lookback window for pattern recognition
   prediction_length: 5  # CHANGED: 5-day multi-horizon forecast
@@ -117,6 +117,15 @@ model:
   use_attention: false  # CHANGED: disable for baseline (can enable later)
   use_bidirectional: false  # CHANGED: regular LSTM baseline first
   l2_regularization: 0.01
+
+# N-BEATS model configuration
+nbeats:
+  enabled: true
+  input_size: 90          # Lookback window (try 60/90/120)
+  horizon: 5              # 5-day forecast
+  learning_rate: 0.001
+  max_steps: 2000         # Training steps
+  num_stacks: 3           # Number of NBEATS stacks
 
 training:
   batch_size: 32  # Smaller batch for better generalization

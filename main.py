@@ -16,6 +16,7 @@ import tensorflow as tf
 from src.data_collection.data_collector import DataCollector
 from src.preprocessing.pipeline import Pipeline
 from src.training.lstm_model import CryptoPredictor
+# Note: NBEATSPredictor is imported lazily to avoid TensorFlow/PyTorch DLL conflict
 from src.training.trainer import ModelTrainer
 from src.utils.config import Config
 from src.utils.logger import setup_logger
@@ -169,20 +170,134 @@ def preprocess_and_train(config: Config, logger: logging.Logger, data: Dict[str,
             "actual_prices": y_test_prices.tolist()  # Shape: (N, 5)
         }
 
-    return results
+    return results, processed_data, pipelines
 
 
-def save_results(results: Dict[str, Dict], config: Config, logger: logging.Logger):
-    logger.info("Saving results.")
-    results_dir = Path(config.get_path('results_dir'))
+def train_nbeats(
+    config: Config,
+    logger: logging.Logger,
+    data: Dict[str, Dict[str, pd.DataFrame]]
+) -> Dict:
+    """
+    Train global N-BEATS model on all coins.
+    
+    Args:
+        config: Configuration object
+        logger: Logger instance
+        data: Raw data dictionary {coin: {'binance': DataFrame}}
+    
+    Returns:
+        Dictionary with N-BEATS training results
+    """
+    nbeats_config = config.get_nbeats_config()
+    
+    if not nbeats_config.get('enabled', False):
+        logger.info("N-BEATS is disabled in config, skipping...")
+        return {}
+    
+    logger.info("=" * 50)
+    logger.info("Starting N-BEATS training...")
+    logger.info("=" * 50)
+    
+    # Lazy import to avoid TensorFlow/PyTorch DLL conflict on Windows
+    # Import PyTorch-based modules only when needed
+    from src.training.nbeats_predictor import NBEATSPredictor
+    
+    # Initialize N-BEATS predictor
+    nbeats = NBEATSPredictor(
+        horizon=nbeats_config.get('horizon', 5),
+        input_size=nbeats_config.get('input_size', 90),
+        learning_rate=nbeats_config.get('learning_rate', 0.001),
+        max_steps=nbeats_config.get('max_steps', 2000),
+        num_stacks=nbeats_config.get('num_stacks', 3)
+    )
+    
+    # Prepare data in long format for N-BEATS
+    # Convert raw data to simple DataFrames for long format conversion
+    data_for_nbeats = {}
+    for coin, sources in data.items():
+        binance_df = sources.get('binance')
+        if binance_df is not None and not binance_df.empty:
+            data_for_nbeats[coin] = binance_df
+    
+    if not data_for_nbeats:
+        logger.error("No valid data for N-BEATS training")
+        return {}
+    
+    try:
+        # Convert to long format
+        df_long = nbeats.prepare_long_format(data_for_nbeats)
+        
+        # Train global model
+        training_info = nbeats.train(df_long)
+        
+        # Generate predictions
+        predictions = nbeats.predict()
+        
+        # Get last prices for each coin to convert returns to prices
+        last_prices = {}
+        for coin, df in data_for_nbeats.items():
+            coin_symbol = coin.upper()[:3] if len(coin) > 3 else coin.upper()
+            if 'close' in df.columns:
+                last_prices[coin_symbol] = float(df['close'].iloc[-1])
+        
+        # Convert predictions to prices
+        price_forecasts = nbeats.predict_returns_to_prices(predictions, last_prices)
+        
+        # Save model
+        nbeats_model_dir = Path(config.get_path('models_dir')) / "nbeats"
+        nbeats.save(nbeats_model_dir)
+        
+        results = {
+            "training_info": training_info,
+            "predictions": predictions.to_dict('records'),
+            "price_forecasts": {k: v for k, v in price_forecasts.items()},
+            "model_path": str(nbeats_model_dir)
+        }
+        
+        logger.info("N-BEATS training completed successfully!")
+        return results
+        
+    except Exception as e:
+        logger.error(f"N-BEATS training failed: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {"error": str(e)}
+
+
+def save_results(
+    results: Dict[str, Dict],
+    config: Config,
+    logger: logging.Logger,
+    model_type: str = "lstm"
+):
+    """
+    Save results to JSON files.
+    
+    Args:
+        results: Results dictionary
+        config: Configuration object
+        logger: Logger instance
+        model_type: Type of model ('lstm' or 'nbeats')
+    """
+    logger.info(f"Saving {model_type} results...")
+    results_dir = Path(config.get_path('results_dir')) / model_type
     results_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    for coin, result in results.items():
-        result_path = results_dir / f"{coin}_results_{timestamp}.json"
+    if model_type == "nbeats":
+        # Save N-BEATS results as single file
+        result_path = results_dir / f"nbeats_global_results_{timestamp}.json"
         with open(result_path, 'w') as f:
-            json.dump(result, f, indent=4)
-        logger.info(f"Saved results for {coin} at {result_path}")
+            json.dump(results, f, indent=4, default=str)
+        logger.info(f"Saved N-BEATS results at {result_path}")
+    else:
+        # Save per-coin results for LSTM
+        for coin, result in results.items():
+            result_path = results_dir / f"{coin}_results_{timestamp}.json"
+            with open(result_path, 'w') as f:
+                json.dump(result, f, indent=4)
+            logger.info(f"Saved results for {coin} at {result_path}")
 
 async def run_prediction(config: Config, logger: logging.Logger, coins: Optional[List[str]] = None):
     logger.info("Starting prediction mode...")
@@ -314,8 +429,8 @@ async def main():
     parser = argparse.ArgumentParser(description="Cryptocurrency Price Prediction")
     parser.add_argument("--config", type=str, default="configs/config.yaml", help="Path to configuration file")
     parser.add_argument("--mode", type=str, default="train",
-                        choices=["train", "predict", "collect-data", "full-pipeline", "compare-models"],
-                        help="Pipeline mode: train, predict, collect-data, full-pipeline, or compare-models")
+                        choices=["train", "train-lstm", "train-nbeats", "predict", "collect-data", "full-pipeline", "compare-models"],
+                        help="Pipeline mode: train (both), train-lstm, train-nbeats, predict, collect-data, full-pipeline, or compare-models")
     parser.add_argument("--coins", type=str, nargs="*", default=None,
                         help="List of coins to process (overrides config file)")
     args = parser.parse_args()
@@ -355,15 +470,69 @@ async def main():
         logger.info("Data collection completed.")
     elif args.mode == "train":
         data = await collect_data(config, logger, coins=args.coins)
-        results = preprocess_and_train(config, logger, data)
-        save_results(results, config, logger)
-        logger.info("Training completed.")
+        
+        # Train LSTM first
+        logger.info("=" * 50)
+        logger.info("Phase 1: Training LSTM models...")
+        logger.info("=" * 50)
+        lstm_results, processed_data, pipelines = preprocess_and_train(config, logger, data)
+        save_results(lstm_results, config, logger, model_type="lstm")
+        logger.info("LSTM training completed.")
+        
+        # Then train N-BEATS
+        logger.info("=" * 50)
+        logger.info("Phase 2: Training N-BEATS model...")
+        logger.info("=" * 50)
+        nbeats_results = train_nbeats(config, logger, data)
+        if nbeats_results:
+            save_results(nbeats_results, config, logger, model_type="nbeats")
+        
+        logger.info("=" * 50)
+        logger.info("All training completed!")
+        logger.info("=" * 50)
+    elif args.mode == "train-lstm":
+        # Train only LSTM models
+        data = await collect_data(config, logger, coins=args.coins)
+        logger.info("=" * 50)
+        logger.info("Training LSTM models only...")
+        logger.info("=" * 50)
+        lstm_results, processed_data, pipelines = preprocess_and_train(config, logger, data)
+        save_results(lstm_results, config, logger, model_type="lstm")
+        logger.info("LSTM training completed.")
+    elif args.mode == "train-nbeats":
+        # Train only N-BEATS model
+        data = await collect_data(config, logger, coins=args.coins)
+        logger.info("=" * 50)
+        logger.info("Training N-BEATS model only...")
+        logger.info("=" * 50)
+        nbeats_results = train_nbeats(config, logger, data)
+        if nbeats_results:
+            save_results(nbeats_results, config, logger, model_type="nbeats")
+        logger.info("N-BEATS training completed.")
     elif args.mode == "predict":
         await run_prediction(config, logger, coins=args.coins)
     elif args.mode == "full-pipeline":
         data = await collect_data(config, logger, coins=args.coins)
-        results = preprocess_and_train(config, logger, data)
-        save_results(results, config, logger)
+        
+        # Train LSTM
+        logger.info("=" * 50)
+        logger.info("Phase 1: Training LSTM models...")
+        logger.info("=" * 50)
+        lstm_results, processed_data, pipelines = preprocess_and_train(config, logger, data)
+        save_results(lstm_results, config, logger, model_type="lstm")
+        
+        # Train N-BEATS
+        logger.info("=" * 50)
+        logger.info("Phase 2: Training N-BEATS model...")
+        logger.info("=" * 50)
+        nbeats_results = train_nbeats(config, logger, data)
+        if nbeats_results:
+            save_results(nbeats_results, config, logger, model_type="nbeats")
+        
+        # Run predictions
+        logger.info("=" * 50)
+        logger.info("Phase 3: Running predictions...")
+        logger.info("=" * 50)
         await run_prediction(config, logger, coins=args.coins)
         logger.info("Full pipeline completed.")
     elif args.mode == "compare-models":

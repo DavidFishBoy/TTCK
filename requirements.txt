@@ -19,3 +19,11 @@ nltk==3.9.2
 # New dependencies for model enhancement
 pmdarima>=2.0.0
 statsmodels>=0.14.0
+
+# N-BEATS model dependencies
+# IMPORTANT on Windows: To avoid DLL conflicts with TensorFlow, install torch separately first:
+#   pip install torch==2.8.0 --index-url https://download.pytorch.org/whl/cpu
+# Or use the full pip install with extra index:
+#   pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.8.0
+neuralforecast>=1.6.0

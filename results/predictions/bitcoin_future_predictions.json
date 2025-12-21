@@ -1,0 +1,28 @@
+{
+    "coin": "bitcoin",
+    "prediction_generated_at": "2025-12-21 13:32:02",
+    "forecast_horizon_days": 5,
+    "predictions": [
+        {
+            "day": 1,
+            "expected_price": 88163.91869280816
+        },
+        {
+            "day": 2,
+            "expected_price": 88202.38513949582
+        },
+        {
+            "day": 3,
+            "expected_price": 88217.85203323315
+        },
+        {
+            "day": 4,
+            "expected_price": 88224.01463628857
+        },
+        {
+            "day": 5,
+            "expected_price": 88255.81841353745
+        }
+    ],
+    "explanation": "These predictions represent the model's best estimate of bitcoin closing prices for the next 5 days, based on historical patterns and recent data."
+}

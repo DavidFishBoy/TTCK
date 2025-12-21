@@ -77,3 +77,7 @@ class Config:
 
     def get_model_dir(self) -> str:
         return self.get_path('models_dir')
+
+    def get_nbeats_config(self) -> Dict[str, Any]:
+        """Get N-BEATS model configuration."""
+        return self.config.get('nbeats', {})

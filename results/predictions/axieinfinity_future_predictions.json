@@ -1,0 +1,28 @@
+{
+    "coin": "axieinfinity",
+    "prediction_generated_at": "2025-12-21 13:32:14",
+    "forecast_horizon_days": 5,
+    "predictions": [
+        {
+            "day": 1,
+            "expected_price": 0.8632003027200699
+        },
+        {
+            "day": 2,
+            "expected_price": 0.8632185162846543
+        },
+        {
+            "day": 3,
+            "expected_price": 0.8630809340831409
+        },
+        {
+            "day": 4,
+            "expected_price": 0.8630174526406502
+        },
+        {
+            "day": 5,
+            "expected_price": 0.8626146786253323
+        }
+    ],
+    "explanation": "These predictions represent the model's best estimate of axieinfinity closing prices for the next 5 days, based on historical patterns and recent data."
+}
