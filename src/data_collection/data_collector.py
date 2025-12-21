@@ -3,14 +3,17 @@ import asyncio
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 
 import aiohttp
 import pandas as pd
+import numpy as np
 
 
 class DataCollector:
-    def __init__(self, coins: List[str], days: int, symbol_mapping: List[Dict[str, str]], coin_map: Dict[str, str], cryptocompare_api_key: str = None, cryptocompare_symbol_map: Dict[str, str] = None):
+    def __init__(self, coins: List[str], days: int, symbol_mapping: List[Dict[str, str]], coin_map: Dict[str, str], 
+                 cryptocompare_api_key: str = None, cryptocompare_symbol_map: Dict[str, str] = None,
+                 outlier_detection: bool = True, outlier_threshold: float = 3.0):
         """
         Initialize the DataCollector.
 
@@ -30,6 +33,10 @@ class DataCollector:
         self.cryptocompare_symbol_map = cryptocompare_symbol_map or {}
         self.binance_api = "https://api.binance.com/api/v3"
         self.cryptocompare_api = "https://min-api.cryptocompare.com/data"
+        
+        # Outlier detection settings (IQR method only)
+        self.outlier_detection = outlier_detection
+        self.outlier_threshold = outlier_threshold
 
         # Set up logging
         self.logger = logging.getLogger(__name__)
@@ -237,7 +244,80 @@ class DataCollector:
             df = df.interpolate(method='time')
             df = df.bfill()
 
+        # Apply outlier detection and handling if enabled
+        if self.outlier_detection:
+            df = self.handle_outliers(df)
+
         return df
+    
+    def detect_outliers_iqr(self, series: pd.Series, threshold: float = 1.5) -> pd.Series:
+        Q1 = series.quantile(0.25)
+        Q3 = series.quantile(0.75)
+        IQR = Q3 - Q1
+        
+        lower_bound = Q1 - threshold * IQR
+        upper_bound = Q3 + threshold * IQR
+        
+        return (series < lower_bound) | (series > upper_bound)
+    
+    def handle_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
+        if df.empty:
+            return df
+        
+        df_cleaned = df.copy()
+        columns_to_check = ['open', 'high', 'low', 'close', 'volume']
+        
+        # Filter only existing columns
+        columns_to_check = [col for col in columns_to_check if col in df_cleaned.columns]
+        
+        if not columns_to_check:
+            self.logger.warning("No OHLCV columns found for outlier detection")
+            return df_cleaned
+        
+        total_outliers = 0
+        outlier_details = {}
+        
+        for col in columns_to_check:
+            # Detect outliers using IQR method
+            outliers_mask = self.detect_outliers_iqr(df_cleaned[col], self.outlier_threshold)
+            
+            num_outliers = outliers_mask.sum()
+            
+            if num_outliers > 0:
+                total_outliers += num_outliers
+                outlier_details[col] = num_outliers
+                
+                # Handle outliers using interpolation
+                # Store original values for logging
+                original_values = df_cleaned.loc[outliers_mask, col].copy()
+                
+                # Replace outliers with NaN then interpolate
+                df_cleaned.loc[outliers_mask, col] = np.nan
+                df_cleaned[col] = df_cleaned[col].interpolate(method='linear', limit_direction='both')
+                
+                # If still NaN (edge cases), use forward/backward fill
+                df_cleaned[col] = df_cleaned[col].ffill().bfill()
+                
+                # Log details for small number of outliers
+                if num_outliers <= 5:
+                    for idx in original_values.index:
+                        original = original_values[idx]
+                        replaced = df_cleaned.loc[idx, col]
+                        self.logger.debug(
+                            f"Outlier in {col} at {idx}: {original:.2f} → {replaced:.2f}"
+                        )
+        
+        if total_outliers > 0:
+            self.logger.info(
+                f"Detected and handled {total_outliers} outliers using IQR method "
+                f"(threshold={self.outlier_threshold})"
+            )
+            for col, count in outlier_details.items():
+                self.logger.info(f"  - {col}: {count} outliers")
+        else:
+            self.logger.debug("No outliers detected in the data")
+        
+        return df_cleaned
 
     async def collect_all_data(self, coins: List[str] = None) -> Dict[str, Dict[str, pd.DataFrame]]:
         """

@@ -64,6 +64,8 @@ async def collect_data(config: Config, logger: logging.Logger, coins: Optional[L
         days=data_config['days'],
         symbol_mapping=data_config.get('symbol_mapping', []),  # Adjust symbol_mapping as needed in config
         coin_map=data_config.get('coin_map', {}),
+        outlier_detection=True,
+        outlier_threshold=3.0,
         cryptocompare_api_key=data_config.get('cryptocompare_api_key'),
         cryptocompare_symbol_map=data_config.get('cryptocompare_symbol_map', {})
     )
@@ -197,6 +199,8 @@ async def run_prediction(config: Config, logger: logging.Logger, coins: Optional
         days=days_back,
         symbol_mapping=data_config.get('symbol_mapping', []),
         coin_map=data_config.get('coin_map', {}),
+        outlier_detection=True,
+        outlier_threshold=3.0,
         cryptocompare_api_key=data_config.get('cryptocompare_api_key'),
         cryptocompare_symbol_map=data_config.get('cryptocompare_symbol_map', {})
     )
