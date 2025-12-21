@@ -192,6 +192,26 @@ def render_compare_models_page():
     display_df['Xếp Hạng MAE'] = display_df['MAE'].rank().astype(int)
     display_df['Xếp Hạng Hướng'] = display_df['Độ Chính Xác Hướng'].rank(ascending=False).astype(int)
     
+    # Metrics explanation section
+    st.markdown("""
+            <h3 style='color: white; margin: 0; display: flex; align-items: center;'>
+                📊 Bảng So Sánh Hiệu Suất
+            </h3>
+    """, unsafe_allow_html=True)
+    
+    # Metrics definitions box
+    st.markdown("""
+        <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
+                    border-left: 4px solid #667eea; margin-bottom: 1.5rem;'>
+            <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>📐 Các Chỉ Số Đánh Giá</h4>
+            <ul style='margin: 0; color: #ccc; padding-left: 1.5rem; line-height: 1.8;'>
+                <li><strong>MAE</strong>: Sai số tuyệt đối trung bình ($) - càng thấp càng tốt</li>
+                <li><strong>RMSE</strong>: Căn bậc hai sai số bình phương - phạt sai số lớn</li>
+                <li><strong>Độ Chính Xác Hướng</strong>: % dự đoán đúng hướng tăng/giảm</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
+    
     # Display metrics table
     st.dataframe(
         display_df[['Mô Hình', 'MAE', 'RMSE', 'Độ Chính Xác Hướng']].style.format({
@@ -250,10 +270,14 @@ def render_compare_models_page():
         showlegend=False
     ), row=1, col=3)
     
-    fig.update_layout(height=400, template="plotly_dark")
+    fig.update_layout(
+        height=400, 
+        template="plotly_dark",
+        margin=dict(r=50)  # Add right margin to prevent cutoff
+    )
     fig.update_xaxes(tickangle=0)
     
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, use_container_width=True)
     
     # AI Analysis Button for Model Comparison
     chart_analyzer = get_chart_analyzer()
@@ -368,25 +392,41 @@ def render_compare_models_page():
     st.markdown("---")
     st.subheader("💡 Phân Tích & Khuyến Nghị")
     
-    lstm_row = display_df[display_df['Mô Hình'] == '🧠 LSTM'].iloc[0]
-    arima_row = display_df[display_df['Mô Hình'] == '📉 ARIMA'].iloc[0]
+    # Calculate best models for each metric
+    best_mae = display_df.loc[display_df['MAE'].idxmin()]
+    best_rmse = display_df.loc[display_df['RMSE'].idxmin()]
+    best_direction = display_df.loc[display_df['Độ Chính Xác Hướng'].idxmax()]
+    best_overall = display_df.loc[(display_df['Xếp Hạng MAE'] + display_df['Xếp Hạng Hướng']).idxmin()]
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("""
             <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #667eea;'>
-                <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>🔍 So Sánh LSTM vs ARIMA</h4>
+                <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>🏆 Xếp Hạng Hiệu Suất</h4>
         """, unsafe_allow_html=True)
         
-        lstm_vs_arima = ((arima_row['MAE'] - lstm_row['MAE']) / arima_row['MAE']) * 100
-        
-        if lstm_vs_arima > 5:
-            st.success(f"✅ LSTM vượt trội hơn ARIMA **{lstm_vs_arima:.1f}%** về giảm sai số")
-        elif lstm_vs_arima < -5:
-            st.info(f"ℹ️ ARIMA tốt hơn LSTM **{abs(lstm_vs_arima):.1f}%** - xem xét dùng ARIMA")
-        else:
-            st.warning("⚠️ Cả hai mô hình có hiệu suất tương đương")
+        # Display rankings
+        st.markdown(f"""
+            <div style='margin: 0.5rem 0;'>
+                <p style='margin: 0.3rem 0; color: #ffd700;'><strong>🥇 Sai số thấp nhất (MAE)</strong>: {best_mae['Mô Hình']}</p>
+                <p style='margin: 0.3rem 0; font-size: 0.85rem; color: #999; padding-left: 1.5rem;'>
+                    MAE = ${best_mae['MAE']:.4f}
+                </p>
+            </div>
+            <div style='margin: 0.5rem 0;'>
+                <p style='margin: 0.3rem 0; color: #c0c0c0;'><strong>🥈 RMSE tốt nhất</strong>: {best_rmse['Mô Hình']}</p>
+                <p style='margin: 0.3rem 0; font-size: 0.85rem; color: #999; padding-left: 1.5rem;'>
+                    RMSE = ${best_rmse['RMSE']:.4f}
+                </p>
+            </div>
+            <div style='margin: 0.5rem 0;'>
+                <p style='margin: 0.3rem 0; color: #cd7f32;'><strong>🥉 Dự đoán hướng chính xác nhất</strong>: {best_direction['Mô Hình']}</p>
+                <p style='margin: 0.3rem 0; font-size: 0.85rem; color: #999; padding-left: 1.5rem;'>
+                    Độ chính xác = {best_direction['Độ Chính Xác Hướng']:.1f}%
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
         
         st.markdown("</div>", unsafe_allow_html=True)
     
@@ -396,10 +436,29 @@ def render_compare_models_page():
                 <h4 style='color: #00d4aa; margin: 0 0 0.5rem 0;'>📋 Khuyến Nghị Sử Dụng</h4>
         """, unsafe_allow_html=True)
         
-        best_overall = display_df.loc[(display_df['Xếp Hạng MAE'] + display_df['Xếp Hạng Hướng']).idxmin(), 'Mô Hình']
-        
-        st.success(f"🏆 **Mô hình tổng thể tốt nhất**: {best_overall}")
+        st.success(f"🏆 **Mô hình tổng thể tốt nhất**: {best_overall['Mô Hình']}")
         st.caption("Dựa trên kết hợp MAE thấp và độ chính xác hướng cao")
+        
+        # Analysis based on best model
+        if '🧠 LSTM' in best_overall['Mô Hình']:
+            st.info("💡 **LSTM** phù hợp khi có đủ dữ liệu lịch sử và muốn nắm bắt mẫu phức tạp")
+        elif '🌐 N-BEATS' in best_overall['Mô Hình']:
+            st.info("💡 **N-BEATS** tốt cho dự báo với xu hướng và mùa vụ rõ ràng")
+        elif '📊 MA-20' in best_overall['Mô Hình']:
+            st.info("💡 **MA-20** đơn giản, ổn định - phù hợp thị trường ít biến động")
+        elif '📈 EMA' in best_overall['Mô Hình']:
+            st.info("💡 **EMA** phản ứng nhanh với thay đổi - tốt cho giao dịch ngắn hạn")
+        elif '📉 ARIMA' in best_overall['Mô Hình']:
+            st.info("💡 **ARIMA** phù hợp dữ liệu có xu hướng tuyến tính rõ ràng")
+        
+        # Performance comparison
+        mae_range = display_df['MAE'].max() - display_df['MAE'].min()
+        mae_spread = (mae_range / display_df['MAE'].mean()) * 100
+        
+        if mae_spread < 10:
+            st.warning("⚠️ **Các mô hình có hiệu suất tương đương** - chọn mô hình đơn giản nhất")
+        else:
+            st.success(f"✅ **Chênh lệch rõ rệt** ({mae_spread:.1f}%) - nên dùng mô hình tốt nhất")
         
         st.markdown("</div>", unsafe_allow_html=True)
     
