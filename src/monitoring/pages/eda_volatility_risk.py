@@ -21,19 +21,19 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_volatility_risk_page():
     """Render trang phân tích biến động và rủi ro."""
-    st.title("📉 Phân Tích Biến Động & Rủi Ro")
+    st.title("Phân Tích Biến Động & Rủi Ro")
     
     # Coin selector inside page
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #667eea; margin-bottom: 1rem;'>
-            <b>📖 Giới thiệu:</b> Trang này phân tích mức độ biến động, rủi ro sụt giảm (drawdown), 
+            <b>Giới thiệu:</b> Trang này phân tích mức độ biến động, rủi ro sụt giảm (drawdown), 
             và các chỉ số rủi ro chuyên nghiệp như VaR và CVaR cho coin bạn chọn.
         </div>
     """, unsafe_allow_html=True)
     
     # Coin selector
-    st.subheader("⚙️ Chọn Coin")
+    st.subheader("Chọn Coin")
     
     coins = [
         "bitcoin", "ethereum", "litecoin", "binancecoin",
@@ -53,7 +53,7 @@ def render_volatility_risk_page():
     st.markdown(f"""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>⚠️ Đánh Giá Rủi Ro {coin.upper()}</h3>
+            <h3 style='color: white; margin: 0;'>Đánh Giá Rủi Ro {coin.upper()}</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Phân tích mức độ biến động, rủi ro sụt giảm (drawdown), 
                 và các chỉ số rủi ro chuyên nghiệp như VaR và CVaR.
@@ -78,12 +78,12 @@ def render_volatility_risk_page():
     # =========================================================================
     # CHART 1: Rolling Volatility
     # =========================================================================
-    st.subheader("📊 Biến Động Theo Thời Gian")
+    st.subheader("Biến Động Theo Thời Gian")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biến Động (Volatility) Theo Thời Gian</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Biến Động (Volatility) Theo Thời Gian</h4>
             <p style='margin: 0; color: #ccc;'>
                 Biến động đo lường mức độ dao động giá trong một khoảng thời gian - được tính bằng độ lệch chuẩn của lợi nhuận hàng ngày.
                 Biểu đồ hiển thị 2 đường biến động lăn: 14 ngày (đường cam - ngắn hạn) và 30 ngày (đường đỏ - dài hơn).
@@ -163,12 +163,12 @@ def render_volatility_risk_page():
     # CHART 2: Drawdown Analysis
     # =========================================================================
     st.markdown("---")
-    st.subheader("📉 Phân Tích Sụt Giảm (Drawdown)")
+    st.subheader("Phân Tích Sụt Giảm (Drawdown)")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📉 Drawdown - Chỉ Số Đo Rủi Ro Sụt Giảm</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Drawdown - Chỉ Số Đo Rủi Ro Sụt Giảm</h4>
             <p style='margin: 0; color: #ccc;'>
                 Drawdown là mức giảm từ đỉnh cao nhất trước đó so với giá hiện tại. Ví dụ: nếu coin đạt đỉnh $100 rồi giảm xuống $70, drawdown là -30%.
                 Biểu đồ "Underwater" bên dưới hiển thị mức drawdown theo thời gian - vùng đỏ càng sâu thì lỗ càng lớn.
@@ -189,10 +189,10 @@ def render_volatility_risk_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.metric("🔻 Max Drawdown", f"{max_dd * 100:.2f}%")
+        st.metric("Max Drawdown", f"{max_dd * 100:.2f}%")
     
     with col2:
-        st.metric("⏱️ Thời Gian Phục Hồi Dài Nhất", f"{max_dd_duration} ngày")
+        st.metric("Thời Gian Phục Hồi Dài Nhất", f"{max_dd_duration} ngày")
     
     # Drawdown chart (underwater plot)
     fig = go.Figure()
@@ -241,7 +241,7 @@ def render_volatility_risk_page():
     # CHART 3: Risk Metrics & Returns Distribution
     # =========================================================================
     st.markdown("---")
-    st.subheader("⚠️ Các Chỉ Số Rủi Ro")
+    st.subheader("Các Chỉ Số Rủi Ro")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
@@ -267,20 +267,20 @@ def render_volatility_risk_page():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("📊 Biến Động Năm", f"{annualized_vol:.2f}%")
+        st.metric("Biến Động Năm", f"{annualized_vol:.2f}%")
         st.caption("Độ lệch chuẩn lợi nhuận hàng năm")
     
     with col2:
-        st.metric("📉 VaR (95%)", f"{var_95:.2f}%")
+        st.metric("VaR (95%)", f"{var_95:.2f}%")
         st.caption("Mức lỗ tối đa hàng ngày ở độ tin cậy 95%")
     
     with col3:
-        st.metric("📉 CVaR (95%)", f"{cvar_95:.2f}%")
+        st.metric("CVaR (95%)", f"{cvar_95:.2f}%")
         st.caption("Mức lỗ trung bình khi vượt VaR")
     
     # Returns Distribution
     st.markdown("---")
-    st.subheader("📊 Phân Phối Lợi Nhuận & Đánh Giá Rủi Ro")
+    st.subheader("Phân Phối Lợi Nhuận & Đánh Giá Rủi Ro")
     
     returns = prices.pct_change().dropna() * 100
     
@@ -334,7 +334,7 @@ def render_volatility_risk_page():
     # Risk Assessment
     # =========================================================================
     st.markdown("---")
-    st.subheader("🎯 Tổng Kết Đánh Giá Rủi Ro")
+    st.subheader("Tổng Kết Đánh Giá Rủi Ro")
     
     if annualized_vol > 100:
         st.error(f"""
@@ -360,13 +360,13 @@ def render_volatility_risk_page():
     
     # Risk recommendations
     st.markdown("---")
-    st.subheader("💡 Khuyến Nghị Quản Lý Rủi Ro")
+    st.subheader("Khuyến Nghị Quản Lý Rủi Ro")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.info(f"""
-            **📊 Đề Xuất Vị Thế**
+            **Đề Xuất Vị Thế**
             
             Dựa trên biến động {annualized_vol:.1f}%, nếu bạn chấp nhận rủi ro 2% tài khoản/giao dịch:
             
@@ -375,7 +375,7 @@ def render_volatility_risk_page():
     
     with col2:
         st.info(f"""
-            **🛡️ Stop-Loss Đề Xuất**
+            **Stop-Loss Đề Xuất**
             
             Dựa trên VaR 95% ({var_95:.2f}%):
             

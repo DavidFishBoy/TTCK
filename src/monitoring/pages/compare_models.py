@@ -55,7 +55,7 @@ def render_compare_models_page():
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>🤖 Đánh Giá Hiệu Suất Mô Hình AI</h3>
+            <h3 style='color: white; margin: 0;'>Đánh Giá Hiệu Suất Mô Hình AI</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 So sánh hiệu suất của 5 mô hình khác nhau trên tập dữ liệu kiểm thử (Test Set).
                 Các chỉ số được sử dụng: MAE (Sai số tuyệt đối trung bình), RMSE (Căn bậc hai sai số toàn phương trung bình), 
@@ -104,7 +104,7 @@ def render_compare_models_page():
     lstm_metrics = NaiveModel.evaluate_log_return(y_true, lstm_pred)
     
     models_results.append({
-        'Mô Hình': '🧠 LSTM',
+        'Mô Hình': 'LSTM',
         'Màu': '#667eea',
         'MAE': lstm_metrics['mae'],
         'RMSE': lstm_metrics['rmse'],
@@ -123,7 +123,7 @@ def render_compare_models_page():
     nbeats_metrics = NBEATSPredictor.evaluate_log_return(y_true, nbeats_pred)
     
     models_results.append({
-        'Mô Hình': '🌐 N-BEATS',
+        'Mô Hình': 'N-BEATS',
         'Màu': '#00bcd4',
         'MAE': nbeats_metrics['mae'],
         'RMSE': nbeats_metrics['rmse'],
@@ -139,7 +139,7 @@ def render_compare_models_page():
     ma_metrics = ma_model.evaluate_log_return(y_true, ma_pred)
     
     models_results.append({
-        'Mô Hình': '📊 MA-20',
+        'Mô Hình': 'MA-20',
         'Màu': '#00d4aa',
         'MAE': ma_metrics['mae'],
         'RMSE': ma_metrics['rmse'],
@@ -154,7 +154,7 @@ def render_compare_models_page():
     ema_metrics = ema_model.evaluate_log_return(y_true, ema_pred)
     
     models_results.append({
-        'Mô Hình': '📈 EMA',
+        'Mô Hình': 'EMA',
         'Màu': '#ffc107',
         'MAE': ema_metrics['mae'],
         'RMSE': ema_metrics['rmse'],
@@ -175,7 +175,7 @@ def render_compare_models_page():
     arima_metrics = arima_model.evaluate_log_return(y_true, arima_pred)
     
     models_results.append({
-        'Mô Hình': '📉 ARIMA',
+        'Mô Hình': 'ARIMA',
         'Màu': '#ff6b6b',
         'MAE': arima_metrics['mae'],
         'RMSE': arima_metrics['rmse'],
@@ -195,7 +195,7 @@ def render_compare_models_page():
     # Metrics explanation section
     st.markdown("""
             <h3 style='color: white; margin: 0; display: flex; align-items: center;'>
-                📊 Bảng So Sánh Hiệu Suất
+                Bảng So Sánh Hiệu Suất
             </h3>
     """, unsafe_allow_html=True)
     
@@ -203,7 +203,7 @@ def render_compare_models_page():
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1.5rem;'>
-            <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>📐 Các Chỉ Số Đánh Giá</h4>
+            <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>Các Chỉ Số Đánh Giá</h4>
             <ul style='margin: 0; color: #ccc; padding-left: 1.5rem; line-height: 1.8;'>
                 <li><strong>MAE</strong>: Sai số tuyệt đối trung bình ($) - càng thấp càng tốt</li>
                 <li><strong>RMSE</strong>: Căn bậc hai sai số bình phương - phạt sai số lớn</li>
@@ -229,13 +229,13 @@ def render_compare_models_page():
     
     col1, col2 = st.columns(2)
     with col1:
-        st.success(f"🏆 **Sai Số Thấp Nhất (MAE)**: {best_mae_model}")
+        st.success(f"**Sai Số Thấp Nhất (MAE)**: {best_mae_model}")
     with col2:
-        st.success(f"🎯 **Dự Đoán Hướng Tốt Nhất**: {best_dir_model}")
+        st.success(f"**Dự Đoán Hướng Tốt Nhất**: {best_dir_model}")
     
     # Bar chart visualization
     st.markdown("---")
-    st.subheader("📈 So Sánh Trực Quan")
+    st.subheader("So Sánh Trực Quan")
     
     # Create subplots
     fig = make_subplots(
@@ -311,12 +311,12 @@ def render_compare_models_page():
     
     # Prediction vs Actual chart
     st.markdown("---")
-    st.subheader("📉 Dự Đoán vs Giá Thực Tế")
+    st.subheader("Dự Đoán vs Giá Thực Tế")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📉 Biểu Đồ So Sánh Dự Đoán vs Giá Thực Tế</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Biểu Đồ So Sánh Dự Đoán vs Giá Thực Tế</h4>
             <p style='margin: 0; color: #ccc;'>
                 Biểu đồ hiển thị dự đoán của các mô hình (đường màu đứt nét) so với giá thực tế (đường trắng liền) trên dữ liệu test.
                 Đây là cách trực quan nhất để đánh giá độ chính xác của từng mô hình.
@@ -333,7 +333,7 @@ def render_compare_models_page():
     selected_models = st.multiselect(
         "Chọn mô hình để hiển thị",
         [r['Mô Hình'] for r in models_results],
-        default=['🧠 LSTM', '📉 ARIMA']
+        default=['LSTM', 'ARIMA']
     )
     
     fig_pred = go.Figure()
@@ -364,7 +364,15 @@ def render_compare_models_page():
         yaxis_title="Giá (USD)",
         height=500,
         hovermode='x unified',
-        template="plotly_dark"
+        template="plotly_dark",
+        margin=dict(r=150, l=80, t=80, b=80),  # Increase right margin to prevent legend cutoff
+        legend=dict(
+            orientation="v",
+            yanchor="top",
+            y=1,
+            xanchor="left",
+            x=1.02
+        )
     )
     
     st.plotly_chart(fig_pred, width='stretch')
@@ -390,7 +398,7 @@ def render_compare_models_page():
     
     # Insights
     st.markdown("---")
-    st.subheader("💡 Phân Tích & Khuyến Nghị")
+    st.subheader("Phân Tích & Khuyến Nghị")
     
     # Calculate best models for each metric
     best_mae = display_df.loc[display_df['MAE'].idxmin()]
@@ -403,25 +411,25 @@ def render_compare_models_page():
     with col1:
         st.markdown("""
             <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #667eea;'>
-                <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>🏆 Xếp Hạng Hiệu Suất</h4>
+                <h4 style='color: #667eea; margin: 0 0 0.5rem 0;'>Xếp Hạng Hiệu Suất</h4>
         """, unsafe_allow_html=True)
         
         # Display rankings
         st.markdown(f"""
             <div style='margin: 0.5rem 0;'>
-                <p style='margin: 0.3rem 0; color: #ffd700;'><strong>🥇 Sai số thấp nhất (MAE)</strong>: {best_mae['Mô Hình']}</p>
+                <p style='margin: 0.3rem 0; color: #ffd700;'><strong>Sai số thấp nhất (MAE)</strong>: {best_mae['Mô Hình']}</p>
                 <p style='margin: 0.3rem 0; font-size: 0.85rem; color: #999; padding-left: 1.5rem;'>
                     MAE = ${best_mae['MAE']:.4f}
                 </p>
             </div>
             <div style='margin: 0.5rem 0;'>
-                <p style='margin: 0.3rem 0; color: #c0c0c0;'><strong>🥈 RMSE tốt nhất</strong>: {best_rmse['Mô Hình']}</p>
+                <p style='margin: 0.3rem 0; color: #c0c0c0;'><strong>RMSE tốt nhất</strong>: {best_rmse['Mô Hình']}</p>
                 <p style='margin: 0.3rem 0; font-size: 0.85rem; color: #999; padding-left: 1.5rem;'>
                     RMSE = ${best_rmse['RMSE']:.4f}
                 </p>
             </div>
             <div style='margin: 0.5rem 0;'>
-                <p style='margin: 0.3rem 0; color: #cd7f32;'><strong>🥉 Dự đoán hướng chính xác nhất</strong>: {best_direction['Mô Hình']}</p>
+                <p style='margin: 0.3rem 0; color: #cd7f32;'><strong>Dự đoán hướng chính xác nhất</strong>: {best_direction['Mô Hình']}</p>
                 <p style='margin: 0.3rem 0; font-size: 0.85rem; color: #999; padding-left: 1.5rem;'>
                     Độ chính xác = {best_direction['Độ Chính Xác Hướng']:.1f}%
                 </p>
@@ -433,40 +441,40 @@ def render_compare_models_page():
     with col2:
         st.markdown("""
             <div style='background: #21262d; padding: 1rem; border-radius: 8px; border: 1px solid #00d4aa;'>
-                <h4 style='color: #00d4aa; margin: 0 0 0.5rem 0;'>📋 Khuyến Nghị Sử Dụng</h4>
+                <h4 style='color: #00d4aa; margin: 0 0 0.5rem 0;'>Khuyến Nghị Sử Dụng</h4>
         """, unsafe_allow_html=True)
         
         st.success(f"🏆 **Mô hình tổng thể tốt nhất**: {best_overall['Mô Hình']}")
         st.caption("Dựa trên kết hợp MAE thấp và độ chính xác hướng cao")
         
         # Analysis based on best model
-        if '🧠 LSTM' in best_overall['Mô Hình']:
-            st.info("💡 **LSTM** phù hợp khi có đủ dữ liệu lịch sử và muốn nắm bắt mẫu phức tạp")
-        elif '🌐 N-BEATS' in best_overall['Mô Hình']:
-            st.info("💡 **N-BEATS** tốt cho dự báo với xu hướng và mùa vụ rõ ràng")
-        elif '📊 MA-20' in best_overall['Mô Hình']:
-            st.info("💡 **MA-20** đơn giản, ổn định - phù hợp thị trường ít biến động")
-        elif '📈 EMA' in best_overall['Mô Hình']:
-            st.info("💡 **EMA** phản ứng nhanh với thay đổi - tốt cho giao dịch ngắn hạn")
-        elif '📉 ARIMA' in best_overall['Mô Hình']:
-            st.info("💡 **ARIMA** phù hợp dữ liệu có xu hướng tuyến tính rõ ràng")
+        if 'LSTM' in best_overall['Mô Hình']:
+            st.info("**LSTM** phù hợp khi có đủ dữ liệu lịch sử và muốn nắm bắt mẫu phức tạp")
+        elif 'N-BEATS' in best_overall['Mô Hình']:
+            st.info("**N-BEATS** tốt cho dự báo với xu hướng và mùa vụ rõ ràng")
+        elif 'MA-20' in best_overall['Mô Hình']:
+            st.info("**MA-20** đơn giản, ổn định - phù hợp thị trường ít biến động")
+        elif 'EMA' in best_overall['Mô Hình']:
+            st.info("**EMA** phản ứng nhanh với thay đổi - tốt cho giao dịch ngắn hạn")
+        elif 'ARIMA' in best_overall['Mô Hình']:
+            st.info("**ARIMA** phù hợp dữ liệu có xu hướng tuyến tính rõ ràng")
         
         # Performance comparison
         mae_range = display_df['MAE'].max() - display_df['MAE'].min()
         mae_spread = (mae_range / display_df['MAE'].mean()) * 100
         
         if mae_spread < 10:
-            st.warning("⚠️ **Các mô hình có hiệu suất tương đương** - chọn mô hình đơn giản nhất")
+            st.warning("**Các mô hình có hiệu suất tương đương** - chọn mô hình đơn giản nhất")
         else:
-            st.success(f"✅ **Chênh lệch rõ rệt** ({mae_spread:.1f}%) - nên dùng mô hình tốt nhất")
+            st.success(f"**Chênh lệch rõ rệt** ({mae_spread:.1f}%) - nên dùng mô hình tốt nhất")
         
         st.markdown("</div>", unsafe_allow_html=True)
     
     # Model descriptions
     st.markdown("---")
-    st.subheader("📚 Mô Tả Chi Tiết Các Mô Hình")
+    st.subheader("Mô Tả Chi Tiết Các Mô Hình")
     
-    with st.expander("🧠 LSTM (Long Short-Term Memory)"):
+    with st.expander("LSTM (Long Short-Term Memory)"):
         st.markdown("""
             **Phương pháp**: Mạng neural deep learning thiết kế cho dữ liệu tuần tự.
             
@@ -481,7 +489,7 @@ def render_compare_models_page():
             - Có thể overfit với dữ liệu lịch sử
         """)
     
-    with st.expander("🌐 N-BEATS (Neural Basis Expansion)"):
+    with st.expander("N-BEATS (Neural Basis Expansion)"):
         st.markdown("""
             **Phương pháp**: Mô hình deep learning với stacks: Trend, Seasonality, và Identity.
             
@@ -497,7 +505,7 @@ def render_compare_models_page():
             - Cần nhiều dữ liệu để học patterns
         """)
     
-    with st.expander("📊 Moving Average (MA-20)"):
+    with st.expander("Moving Average (MA-20)"):
         st.markdown("""
             **Phương pháp**: Dự đoán bằng trung bình đơn giản của 20 giá gần nhất.
             
@@ -511,7 +519,7 @@ def render_compare_models_page():
             - Không nắm bắt được mẫu phức tạp
         """)
     
-    with st.expander("📈 Exponential Moving Average (EMA)"):
+    with st.expander("Exponential Moving Average (EMA)"):
         st.markdown("""
             **Phương pháp**: Trung bình có trọng số, ưu tiên giá gần đây hơn.
             
@@ -525,7 +533,7 @@ def render_compare_models_page():
             - Cần điều chỉnh hệ số làm mượt (alpha)
         """)
     
-    with st.expander("📉 ARIMA (AutoRegressive Integrated Moving Average)"):
+    with st.expander("ARIMA (AutoRegressive Integrated Moving Average)"):
         st.markdown("""
             **Phương pháp**: Mô hình thống kê kết hợp AutoRegressive và Moving Average.
             

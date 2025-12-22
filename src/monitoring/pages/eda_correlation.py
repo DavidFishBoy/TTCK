@@ -17,13 +17,13 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_correlation_page():
     """Render trang phân tích tương quan."""
-    st.title("🔗 Phân Tích Tương Quan")
+    st.title("Phân Tích Tương Quan")
     
     # Page introduction
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>🔗 Mối Quan Hệ Giữa Các Coin</h3>
+            <h3 style='color: white; margin: 0;'>Mối Quan Hệ Giữa Các Coin</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Phân tích tương quan giữa các coin để hiểu mức độ đa dạng hóa của danh mục.
                 Coin có tương quan thấp giúp giảm rủi ro tổng thể.
@@ -45,12 +45,12 @@ def render_correlation_page():
     # =========================================================================
     # CHART 1: Correlation Matrix
     # =========================================================================
-    st.subheader("📊 Ma Trận Tương Quan (Lợi Nhuận)")
+    st.subheader("Ma Trận Tương Quan (Lợi Nhuận)")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Ma Trận Tương Quan Giữa Các Coin</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Ma Trận Tương Quan Giữa Các Coin</h4>
             <p style='margin: 0; color: #ccc;'>
                 Ma trận hiển thị hệ số tương quan giữa từng cặp coin, dao động từ -1 đến +1. Tương quan đo lường mức độ 
                 hai coin di chuyển cùng chiều hay ngược chiều nhau - đây là cơ sở của việc đa dạng hóa danh mục.
@@ -101,11 +101,11 @@ def render_correlation_page():
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📊 Tương Quan Trung Bình", f"{avg_corr:.2f}")
+        st.metric("Tương Quan Trung Bình", f"{avg_corr:.2f}")
     with col2:
-        st.metric("📈 Tương Quan Cao Nhất", f"{max_corr:.2f}")
+        st.metric("Tương Quan Cao Nhất", f"{max_corr:.2f}")
     with col3:
-        st.metric("📉 Tương Quan Thấp Nhất", f"{min_corr:.2f}")
+        st.metric("Tương Quan Thấp Nhất", f"{min_corr:.2f}")
     
     # Find highest and lowest correlation pairs
     pairs = []
@@ -146,12 +146,12 @@ def render_correlation_page():
     # CHART 2: Rolling Correlation with Bitcoin
     # =========================================================================
     st.markdown("---")
-    st.subheader("📈 Tương Quan Lăn Với Bitcoin (30 Ngày)")
+    st.subheader("Tương Quan Lăn Với Bitcoin (30 Ngày)")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Tương Quan Lăn Với Bitcoin - Theo Dõi Theo Thời Gian</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Tương Quan Lăn Với Bitcoin - Theo Dõi Theo Thời Gian</h4>
             <p style='margin: 0; color: #ccc;'>
                 Biểu đồ hiển thị hệ số tương quan 30 ngày giữa các altcoin và Bitcoin theo thời gian. 
                 Bitcoin là coin dẫn dắt thị trường - khi BTC tăng/giảm, hầu hết altcoin cũng theo.
@@ -240,11 +240,11 @@ def render_correlation_page():
     # Insights & Best Pairs
     # =========================================================================
     st.markdown("---")
-    st.subheader("💡 Nhận Định Tương Quan")
+    st.subheader("Nhận Định Tương Quan")
     
     if avg_corr > 0.7:
         st.warning(f"""
-            ⚠️ **Tương Quan Cao** ({avg_corr:.2f})
+            **Tương Quan Cao** ({avg_corr:.2f})
             
             Các coin có xu hướng di chuyển cùng chiều mạnh. Điều này có nghĩa:
             - Đa dạng hóa trong danh mục này có lợi ích hạn chế
@@ -253,7 +253,7 @@ def render_correlation_page():
         """)
     elif avg_corr < 0.3:
         st.success(f"""
-            ✅ **Tương Quan Thấp** ({avg_corr:.2f})
+            **Tương Quan Thấp** ({avg_corr:.2f})
             
             Các coin hoạt động khá độc lập. Điều này có nghĩa:
             - Tiềm năng đa dạng hóa tốt trong danh mục
@@ -262,7 +262,7 @@ def render_correlation_page():
         """)
     else:
         st.info(f"""
-            ℹ️ **Tương Quan Vừa Phải** ({avg_corr:.2f})
+            **Tương Quan Vừa Phải** ({avg_corr:.2f})
             
             Các coin có mức độ liên kết trung bình. Điều này có nghĩa:
             - Có một số lợi ích đa dạng hóa
@@ -272,7 +272,7 @@ def render_correlation_page():
     
     # Best pairs for diversification
     st.markdown("---")
-    st.subheader("🎯 Cặp Coin Tốt Nhất Cho Đa Dạng Hóa")
+    st.subheader("Cặp Coin Tốt Nhất Cho Đa Dạng Hóa")
     
     pairs_sorted_low = sorted(pairs, key=lambda x: x[2])[:5]
     

@@ -20,12 +20,12 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_market_overview_page():
     """Render trang tổng quan thị trường."""
-    st.title("🌍 Tổng Quan Thị Trường")
+    st.title("Tổng Quan Thị Trường")
     
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>🌍 Phân Tích Tổng Quan Thị Trường</h3>
+            <h3 style='color: white; margin: 0;'>Phân Tích Tổng Quan Thị Trường</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Cái nhìn toàn diện về sức khỏe thị trường crypto và xếp hạng các đồng coin theo nhiều tiêu chí.
             </p>
@@ -42,12 +42,12 @@ def render_market_overview_page():
     
     # Returns Heatmap
     st.markdown("---")
-    st.subheader("📊 Bản Đồ Nhiệt Lợi Nhuận")
+    st.subheader("Bản Đồ Nhiệt Lợi Nhuận")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bản Đồ Nhiệt Lợi Nhuận - So Sánh Hiệu Suất Nhiều Coin</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Bản Đồ Nhiệt Lợi Nhuận - So Sánh Hiệu Suất Nhiều Coin</h4>
             <p style='margin: 0; color: #ccc;'>
                 Bản đồ nhiệt hiển thị lợi nhuận phần trăm của từng coin qua 3 khung thời gian: 7 ngày (ngắn hạn), 30 ngày (trung hạn), 
                 và 90 ngày (dài hạn). Đây là cách nhanh nhất để nhận diện coin nào đang hot và coin nào đang yếu.
@@ -116,12 +116,12 @@ def render_market_overview_page():
     
     # Rankings Section
     st.markdown("---")
-    st.subheader("🏆 Xếp Hạng Coin")
+    st.subheader("Xếp Hạng Coin")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>🏆 Xếp Hạng Coin Theo Nhiều Tiêu Chí</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Xếp Hạng Coin Theo Nhiều Tiêu Chí</h4>
             <p style='margin: 0; color: #ccc;'>
                 Bảng xếp hạng giúp bạn nhanh chóng xác định coin dẫn đầu hoặc coin nổi bật nhất theo tiêu chí bạn chọn.
                 Mỗi tiêu chí phản ánh một khía cạnh khác nhau của coin.
@@ -208,12 +208,12 @@ def render_market_overview_page():
             )
             st.markdown(analysis)
     st.markdown("---")
-    st.subheader("📈 Phân Tích Độ Rộng Thị Trường")
+    st.subheader("Phân Tích Độ Rộng Thị Trường")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📈 Độ Rộng Thị Trường - Đo Sức Khỏe Chung</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Độ Rộng Thị Trường - Đo Sức Khỏe Chung</h4>
             <p style='margin: 0; color: #ccc;'>
                 Độ rộng thị trường đo lường có bao nhiêu coin tham gia vào xu hướng thị trường. Biểu đồ hiển thị 
                 tỷ lệ coin tăng (xanh) vs giảm (đỏ) qua các khung thời gian. Đây là chỉ số xác nhận sức mạnh xu hướng.
@@ -290,12 +290,12 @@ def render_market_overview_page():
     
     # Liquidity Analysis
     st.markdown("---")
-    st.subheader("💧 Phân Tích Thanh Khoản")
+    st.subheader("Phân Tích Thanh Khoản")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>💧 Tỷ Lệ Thanh Khoản - Đánh Giá Mức Độ Giao Dịch</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Tỷ Lệ Thanh Khoản - Đánh Giá Mức Độ Giao Dịch</h4>
             <p style='margin: 0; color: #ccc;'>
                 Tỷ lệ thanh khoản = Khối lượng giao dịch trung bình 7 ngày ÷ Vốn hóa thị trường. 
                 Chỉ số này cho biết coin được giao dịch tích cực đến mức nào so với quy mô của nó.
@@ -391,6 +391,6 @@ def render_market_overview_page():
         if liquidity_data:
             avg_liquidity = liq_df['liquidity_ratio'].mean()
             if avg_liquidity > 0.1:
-                st.success(f"💧 **Thanh Khoản Cao**: Tỷ lệ TB {avg_liquidity:.2f}%")
+                st.success(f"Thanh Khoản Cao: Tỷ lệ TB {avg_liquidity:.2f}%")
             else:
-                st.warning(f"⚠️ **Thanh Khoản Thấp**: Tỷ lệ TB {avg_liquidity:.2f}%")
+                st.warning(f"Thanh Khoản Thấp: Tỷ lệ TB {avg_liquidity:.2f}%")

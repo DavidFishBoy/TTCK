@@ -15,19 +15,19 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_price_volume_page():
     """Render trang phân tích giá và khối lượng."""
-    st.title("📈 Phân Tích Giá & Khối Lượng")
+    st.title("Phân Tích Giá & Khối Lượng")
     
     # Page introduction
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #667eea; margin-bottom: 1rem;'>
-            <b>📖 Giới thiệu:</b> Trang này phân tích chi tiết biến động giá, đường trung bình động (MA), 
+            <b>Giới thiệu:</b> Trang này phân tích chi tiết biến động giá, đường trung bình động (MA), 
             khối lượng giao dịch và phân phối lợi nhuận cho coin bạn chọn.
         </div>
     """, unsafe_allow_html=True)
     
     # Coin selector inside page
-    st.subheader("⚙️ Chọn Coin")
+    st.subheader("Chọn Coin")
     
     coins = [
         "bitcoin", "ethereum", "litecoin", "binancecoin",
@@ -47,7 +47,7 @@ def render_price_volume_page():
     st.markdown(f"""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>📊 Phân Tích Kỹ Thuật {coin.upper()}</h3>
+            <h3 style='color: white; margin: 0;'>Phân Tích Kỹ Thuật {coin.upper()}</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Phân tích chi tiết biến động giá, đường trung bình động (MA), 
                 khối lượng giao dịch và phân phối lợi nhuận của {coin.upper()}.
@@ -71,12 +71,12 @@ def render_price_volume_page():
     # =========================================================================
     # CHART 1: Price with Moving Averages
     # =========================================================================
-    st.subheader("📊 Giá Với Đường Trung Bình Động (MA)")
+    st.subheader("Giá Với Đường Trung Bình Động (MA)")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Giá Kết Hợp Đường Trung Bình Động</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Biểu Đồ Giá Kết Hợp Đường Trung Bình Động</h4>
             <p style='margin: 0; color: #ccc;'>
                 Biểu đồ hiển thị giá đóng cửa (đường xanh) cùng với 3 đường trung bình động (MA - Moving Average). 
                 MA là công cụ phân tích kỹ thuật phổ biến nhất, giúp lọc nhiễu ngắn hạn và xác định xu hướng thị trường.
@@ -144,13 +144,13 @@ def render_price_volume_page():
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        trend_20 = "📈 Tăng" if current_price > ma20 else "📉 Giảm"
+        trend_20 = "Tăng" if current_price > ma20 else "Giảm"
         st.metric("Xu Hướng Ngắn Hạn (MA20)", trend_20)
     with col2:
-        trend_50 = "📈 Tăng" if current_price > ma50 else "📉 Giảm"
+        trend_50 = "Tăng" if current_price > ma50 else "Giảm"
         st.metric("Xu Hướng Trung Hạn (MA50)", trend_50)
     with col3:
-        trend_200 = "📈 Tăng" if current_price > ma200 else "📉 Giảm"
+        trend_200 = "Tăng" if current_price > ma200 else "Giảm"
         st.metric("Xu Hướng Dài Hạn (MA200)", trend_200)
     
     # AI Analysis Button for Price/MA Chart
@@ -192,12 +192,12 @@ def render_price_volume_page():
     # CHART 2: Volume Analysis
     # =========================================================================
     st.markdown("---")
-    st.subheader("📊 Phân Tích Khối Lượng Giao Dịch")
+    st.subheader("Phân Tích Khối Lượng Giao Dịch")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Phân Tích Mối Quan Hệ Giá - Khối Lượng</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Phân Tích Mối Quan Hệ Giá - Khối Lượng</h4>
             <p style='margin: 0; color: #ccc;'>
                 Biểu đồ trên hiển thị giá (trên) và khối lượng giao dịch (dưới). Khối lượng là số lượng coin được mua bán trong một ngày - 
                 đây là chỉ báo quan trọng về sức mạnh của xu hướng và sự quan tâm của thị trường.
@@ -252,14 +252,14 @@ def render_price_volume_page():
     
     # Volume Spike Detection
     st.markdown("---")
-    st.subheader("🚨 Phát Hiện Đột Biến Khối Lượng")
+    st.subheader("Phát Hiện Đột Biến Khối Lượng")
     
     z_scores = detect_volume_spike(df, window=20, threshold=2.0)
     spikes = df[abs(z_scores) > 2.0].tail(5)
     spike_count = len(df[abs(z_scores) > 2.0])
     
     if len(spikes) > 0:
-        st.warning(f"⚠️ Phát hiện {spike_count} đợt đột biến khối lượng trong toàn bộ lịch sử")
+        st.warning(f"Phát hiện {spike_count} đợt đột biến khối lượng trong toàn bộ lịch sử")
         st.markdown("**5 Đột Biến Gần Nhất:**")
         latest_spike_date = None
         latest_spike_zscore = 0
@@ -270,7 +270,7 @@ def render_price_volume_page():
             latest_spike_date = date.strftime('%Y-%m-%d')
             latest_spike_zscore = z
     else:
-        st.success("✅ Không có đột biến khối lượng đáng kể gần đây")
+        st.success("Không có đột biến khối lượng đáng kể gần đây")
         latest_spike_date = "N/A"
         latest_spike_zscore = 0
     
@@ -304,12 +304,12 @@ def render_price_volume_page():
     # CHART 3: Returns Distribution
     # =========================================================================
     st.markdown("---")
-    st.subheader("📊 Phân Phối Lợi Nhuận Hàng Ngày")
+    st.subheader("Phân Phối Lợi Nhuận Hàng Ngày")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Histogram Phân Phối Lợi Nhuận Hàng Ngày</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Histogram Phân Phối Lợi Nhuận Hàng Ngày</h4>
             <p style='margin: 0; color: #ccc;'>
                 Biểu đồ histogram hiển thị tần suất xuất hiện của các mức lợi nhuận/lỗ hàng ngày (% thay đổi giá). 
                 Đường thẳng đứng màu trắng là mốc 0%, đường vàng là mức lợi nhuận trung bình.

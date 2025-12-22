@@ -17,13 +17,13 @@ from src.analysis.financial_metrics import get_all_metrics
 
 def render_investment_insights_page():
     """Render trang khuyến nghị đầu tư."""
-    st.title("🧠 Khuyến Nghị Đầu Tư")
+    st.title("Khuyến Nghị Đầu Tư")
     
     # Page introduction
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>📊 Tổng Hợp & Khuyến Nghị</h3>
+            <h3 style='color: white; margin: 0;'>Tổng Hợp & Khuyến Nghị</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Tổng hợp phân tích từ tất cả các trang và đưa ra khuyến nghị đầu tư 
                 dựa trên điều kiện thị trường hiện tại.
@@ -40,7 +40,7 @@ def render_investment_insights_page():
         return
     
     # Market Regime
-    st.subheader("🌍 Tình Trạng Thị Trường Hiện Tại")
+    st.subheader("Tình Trạng Thị Trường Hiện Tại")
     
     regime_info = identify_market_regime(data_dict)
     
@@ -73,18 +73,18 @@ def render_investment_insights_page():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.metric("📊 Coin Trên MA200", f"{regime_info['pct_coins_above_ma']:.0f}%")
+        st.metric("Coin Trên MA200", f"{regime_info['pct_coins_above_ma']:.0f}%")
     
     with col2:
-        st.metric("📈 Biến Động TB", f"{regime_info['avg_volatility']:.1f}%")
+        st.metric("Biến Động TB", f"{regime_info['avg_volatility']:.1f}%")
     
     with col3:
         vol_vi = {"High": "Cao", "Low": "Thấp", "Normal": "Bình Thường"}
-        st.metric("⚡ Mức Biến Động", vol_vi.get(regime_info['volatility_regime'], regime_info['volatility_regime']))
+        st.metric("Mức Biến Động", vol_vi.get(regime_info['volatility_regime'], regime_info['volatility_regime']))
     
     # Top 3 Watchlist
     st.markdown("---")
-    st.subheader("🎯 Top 3 Coin Đáng Theo Dõi")
+    st.subheader("Top 3 Coin Đáng Theo Dõi")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
@@ -115,16 +115,16 @@ def render_investment_insights_page():
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                st.metric("💵 Giá Hiện Tại", f"${row['current_price']:.2f}")
-                st.metric("📈 CAGR", f"{row['cagr']:.2f}%")
+                st.metric("Giá Hiện Tại", f"${row['current_price']:.2f}")
+                st.metric("CAGR", f"{row['cagr']:.2f}%")
             
             with col2:
-                st.metric("📊 Biến Động", f"{row['annualized_volatility']:.2f}%")
-                st.metric("⚖️ Sharpe", f"{row['sharpe_ratio']:.2f}")
+                st.metric("Biến Động", f"{row['annualized_volatility']:.2f}%")
+                st.metric("Sharpe", f"{row['sharpe_ratio']:.2f}")
             
             with col3:
-                st.metric("📉 Max Drawdown", f"{row['max_drawdown']:.2f}%")
-                st.metric("🎯 Sortino", f"{row['sortino_ratio']:.2f}")
+                st.metric("Max Drawdown", f"{row['max_drawdown']:.2f}%")
+                st.metric("Sortino", f"{row['sortino_ratio']:.2f}")
             
             st.markdown(f"""
                 **Tại Sao Nên Theo Dõi**: Coin này có lợi nhuận điều chỉnh rủi ro tốt với 
@@ -134,7 +134,7 @@ def render_investment_insights_page():
     
     # Risk Warnings
     st.markdown("---")
-    st.subheader("⚠️ Cảnh Báo Rủi Ro")
+    st.subheader("Cảnh Báo Rủi Ro")
     
     # Check correlation
     corr_matrix = calculate_correlation_matrix(data_dict)
@@ -173,11 +173,11 @@ def render_investment_insights_page():
             else:
                 st.warning(w["msg"])
     else:
-        st.success("✅ Không có cảnh báo rủi ro lớn tại thời điểm này")
+        st.success("Không có cảnh báo rủi ro lớn tại thời điểm này")
     
     # Action Scenarios
     st.markdown("---")
-    st.subheader("📋 Chiến Lược Khuyến Nghị")
+    st.subheader("Chiến Lược Khuyến Nghị")
     
     if regime_info['regime'] == "Bull" and regime_info['volatility_regime'] == "Low":
         st.success("""
@@ -186,10 +186,10 @@ def render_investment_insights_page():
             **Điều Kiện Thị Trường**: Xu hướng tăng với biến động thấp
             
             **Hành Động Khuyến Nghị**:
-            - ✅ Tăng tỷ trọng các coin có momentum cao
-            - ✅ Áp dụng chiến lược theo xu hướng (trend-following)
-            - ✅ Có thể mở vị thế lớn hơn
-            - ⚠️ Vẫn đặt stop-loss để bảo vệ lợi nhuận
+            - Tăng tỷ trọng các coin có momentum cao
+            - Áp dụng chiến lược theo xu hướng (trend-following)
+            - Có thể mở vị thế lớn hơn
+            - Vẫn đặt stop-loss để bảo vệ lợi nhuận
             
             **Lời Khuyên**: Đây là giai đoạn thuận lợi cho đầu tư tăng trưởng. 
             Tận dụng cơ hội nhưng không quên quản lý rủi ro.
@@ -202,10 +202,10 @@ def render_investment_insights_page():
             **Điều Kiện Thị Trường**: Xu hướng giảm
             
             **Hành Động Khuyến Nghị**:
-            - 🛑 Giảm tổng exposure với thị trường
-            - 💰 Bảo toàn vốn - chờ điểm vào tốt hơn
-            - 📉 Cân nhắc các vị thế short hoặc hedging
-            - ⏰ Kiên nhẫn chờ tín hiệu đảo chiều
+            - Giảm tổng exposure với thị trường
+            - Bảo toàn vốn - chờ điểm vào tốt hơn
+            - Cân nhắc các vị thế short hoặc hedging
+            - Kiên nhẫn chờ tín hiệu đảo chiều
             
             **Lời Khuyên**: Đây không phải lúc để "bắt đáy". 
             Tập trung vào bảo toàn vốn và chờ xác nhận đảo chiều.
@@ -218,10 +218,10 @@ def render_investment_insights_page():
             **Điều Kiện Thị Trường**: Biến động cao
             
             **Hành Động Khuyến Nghị**:
-            - ⚖️ Giảm kích thước vị thế
-            - 🛡️ Đặt stop-loss rộng hơn hoặc không giao dịch
-            - 📊 Tập trung vào coin ít biến động
-            - 💵 Giữ tỷ lệ tiền mặt cao
+            - Giảm kích thước vị thế
+            - Đặt stop-loss rộng hơn hoặc không giao dịch
+            - Tập trung vào coin ít biến động
+            - Giữ tỷ lệ tiền mặt cao
             
             **Lời Khuyên**: Biến động cao = Rủi ro cao. Chờ thị trường ổn định hơn 
             trước khi mở vị thế lớn.
@@ -234,10 +234,10 @@ def render_investment_insights_page():
             **Điều Kiện Thị Trường**: Hỗn hợp / Đi ngang
             
             **Hành Động Khuyến Nghị**:
-            - 🎯 Chọn lọc kỹ điểm vào lệnh
-            - ⚖️ Duy trì danh mục cân bằng
-            - 📊 Tập trung phân tích từng coin riêng lẻ
-            - 🔄 Cân nhắc chiến lược giao dịch trong vùng giá
+            - Chọn lọc kỹ điểm vào lệnh
+            - Duy trì danh mục cân bằng
+            - Tập trung phân tích từng coin riêng lẻ
+            - Cân nhắc chiến lược giao dịch trong vùng giá
             
             **Lời Khuyên**: Không có xu hướng rõ ràng = cần linh hoạt. 
             Tập trung vào cơ hội cụ thể thay vì đặt cược vào thị trường chung.

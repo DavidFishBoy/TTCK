@@ -156,7 +156,7 @@ def create_fng_timeline_chart(df: pd.DataFrame) -> go.Figure:
     ))
     
     fig.update_layout(
-        title="📊 Fear & Greed Index Over Time",
+        title="Fear & Greed Index Over Time",
         xaxis_title="Date", yaxis_title="Fear & Greed Value",
         yaxis=dict(range=[0, 100], dtick=25),
         template="plotly_dark", height=450,
@@ -183,7 +183,7 @@ def create_sentiment_return_overlay(df: pd.DataFrame, sentiment_col: str, coin: 
     )
     
     fig.update_layout(
-        title=f"📈 Sentiment vs {coin} Daily Return",
+        title=f"Sentiment vs {coin} Daily Return",
         template="plotly_dark", height=450,
         legend=dict(orientation="h", yanchor="bottom", y=1.02)
     )
@@ -216,7 +216,7 @@ def create_lag_correlation_chart(corr_df: pd.DataFrame) -> go.Figure:
             )
     
     fig.update_layout(
-        title="🔗 Lag Correlation: Sentiment(t-k) vs Return(t)",
+        title="Lag Correlation: Sentiment(t-k) vs Return(t)",
         xaxis_title="Lag Period", yaxis_title="Pearson Correlation",
         template="plotly_dark", height=350, yaxis=dict(range=[-0.3, 0.3])
     )
@@ -252,7 +252,7 @@ def create_news_timeline_chart(df: pd.DataFrame) -> go.Figure:
     fig.add_hline(y=0, line_dash="dash", line_color="gray", secondary_y=False)
     
     fig.update_layout(
-        title="📰 News Sentiment Timeline (7 ngày gần nhất)",
+        title="News Sentiment Timeline (7 ngày gần nhất)",
         template="plotly_dark", height=400,
         legend=dict(orientation="h", yanchor="bottom", y=1.02)
     )
@@ -268,7 +268,7 @@ def render_news_headlines(articles_df: pd.DataFrame, limit: int = 10):
         st.info("Không có tin tức")
         return
     
-    st.markdown("#### 📰 Tin Tức Gần Đây")
+    st.markdown("#### Tin Tức Gần Đây")
     
     for i, row in articles_df.head(limit).iterrows():
         sentiment = row["sentiment_score"]
@@ -304,7 +304,7 @@ def render_news_headlines(articles_df: pd.DataFrame, limit: int = 10):
 
 def render_sentiment_analysis_page():
     """Render the Social Sentiment Analysis page."""
-    st.title("📊 Phân Tích Tâm Lý Thị Trường")
+    st.title("Phân Tích Tâm Lý Thị Trường")
     
     # Introduction
     st.markdown("""
@@ -319,14 +319,14 @@ def render_sentiment_analysis_page():
     """, unsafe_allow_html=True)
     
     # ============ Source Selector ============
-    st.subheader("⚙️ Chọn Nguồn Dữ Liệu")
+    st.subheader("Chọn Nguồn Dữ Liệu")
     
     col1, col2, col3 = st.columns([2, 2, 1])
     
     with col1:
         data_source = st.selectbox(
             "Nguồn Sentiment:",
-            ["🎯 Alternative.me (Fear & Greed Index)", "📰 NewsAPI (Tin tức Crypto)"],
+            ["Alternative.me (Fear & Greed Index)", "NewsAPI (Tin tức Crypto)"],
             help="Chọn nguồn dữ liệu để phân tích"
         )
     
@@ -391,7 +391,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
         merged_df["return"] = np.nan
     
     # Overview metrics
-    st.subheader("📈 Tổng Quan Fear & Greed")
+    st.subheader("Tổng Quan Fear & Greed")
     
     col1, col2, col3, col4, col5 = st.columns(5)
     latest = sentiment_df.iloc[-1] if not sentiment_df.empty else {}
@@ -410,7 +410,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     st.markdown("---")
     
     # Timeline chart
-    st.subheader("📊 Biểu đồ Fear & Greed Index")
+    st.subheader("Biểu đồ Fear & Greed Index")
     st.markdown("""
         <div style='background: rgba(102,126,234,0.1); padding: 1rem; border-radius: 8px; border-left: 3px solid #667eea; margin-bottom: 1rem;'>
             <b>Cách đọc:</b> 0-25 (Extreme Fear), 26-49 (Fear), 50-59 (Neutral), 60-74 (Greed), 75-100 (Extreme Greed)
@@ -459,7 +459,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     
     # Overlay with return
     st.markdown("---")
-    st.subheader(f"📈 Sentiment vs {selected_coin.upper()} Return")
+    st.subheader(f"Sentiment vs {selected_coin.upper()} Return")
     
     if "return" in merged_df.columns and not merged_df["return"].isna().all():
         fig_overlay = create_sentiment_return_overlay(merged_df, "fng_value", selected_coin.upper())
@@ -469,7 +469,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     
     # Lag correlation
     st.markdown("---")
-    st.subheader("🔗 Phân Tích Tương Quan Theo Lag")
+    st.subheader("Phân Tích Tương Quan Theo Lag")
     
     if "return" in merged_df.columns and not merged_df["return"].isna().all():
         corr_df = calculate_lag_correlations(merged_df, "fng_value")
@@ -477,12 +477,12 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
             fig_corr = create_lag_correlation_chart(corr_df)
             st.plotly_chart(fig_corr, width='stretch')
             
-            with st.expander("📋 Bảng chi tiết"):
+            with st.expander("Bảng chi tiết"):
                 st.dataframe(corr_df.style.format({"Correlation": "{:.4f}", "P-Value": "{:.4f}"}), width='stretch')
     
     # Event study
     st.markdown("---")
-    st.subheader("📊 Event Study: Return sau Extreme Sentiment")
+    st.subheader("Event Study: Return sau Extreme Sentiment")
     
     if "return" in merged_df.columns and not merged_df["return"].isna().all():
         event_results = perform_event_study(merged_df)
@@ -510,7 +510,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     
     # Distribution
     st.markdown("---")
-    st.subheader("📊 Phân Bố Fear & Greed Index")
+    st.subheader("Phân Bố Fear & Greed Index")
     
     col1, col2 = st.columns(2)
     with col1:
@@ -551,12 +551,12 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
         return
     
     # ============ Overview Metrics with Insights ============
-    st.subheader("📰 Tổng Quan News Sentiment")
+    st.subheader("Tổng Quan News Sentiment")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #667eea; margin-bottom: 1rem;'>
-            <b>📖 Về News Sentiment:</b> Phân tích cảm xúc từ tiêu đề và mô tả tin tức crypto. 
+            <b>Về News Sentiment:</b> Phân tích cảm xúc từ tiêu đề và mô tả tin tức crypto. 
             Score từ -1 (rất tiêu cực) đến +1 (rất tích cực). Sentiment gần 0 = trung lập.
         </div>
     """, unsafe_allow_html=True)
@@ -590,21 +590,21 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
     
     # Auto insight
     if avg_sentiment > 0.1:
-        st.success("💡 **Insight**: Tin tức đang nghiêng về **tích cực** - thị trường có thể đang trong giai đoạn lạc quan.")
+        st.success("**Insight**: Tin tức đang nghiêng về **tích cực** - thị trường có thể đang trong giai đoạn lạc quan.")
     elif avg_sentiment < -0.1:
-        st.error("⚠️ **Insight**: Tin tức đang nghiêng về **tiêu cực** - có thể có sự kiện xấu hoặc FUD đang lan rộng.")
+        st.error("**Insight**: Tin tức đang nghiêng về **tiêu cực** - có thể có sự kiện xấu hoặc FUD đang lan rộng.")
     else:
-        st.info("📊 **Insight**: Tin tức đang ở trạng thái **trung lập** - thị trường chưa có xu hướng rõ ràng.")
+        st.info("**Insight**: Tin tức đang ở trạng thái **trung lập** - thị trường chưa có xu hướng rõ ràng.")
     
     st.markdown("---")
     
     # ============ Timeline Chart with Analysis ============
-    st.subheader("📈 Biểu Đồ Sentiment Theo Thời Gian")
+    st.subheader("Biểu Đồ Sentiment Theo Thời Gian")
     
     st.markdown("""
         <div style='background: rgba(0, 212, 170, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #00d4aa; margin-bottom: 1rem;'>
-            <b>📖 Cách đọc:</b><br>
+            <b>Cách đọc:</b><br>
             • <b>Đường xanh (Sentiment)</b>: Giá trị trung bình sentiment mỗi ngày (-1 đến +1)<br>
             • <b>Cột xanh (Volume)</b>: Số lượng tin tức được thu thập mỗi ngày<br>
             • <b>Đường ngang (y=0)</b>: Ngưỡng trung lập - trên = tích cực, dưới = tiêu cực
@@ -651,7 +651,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
                               line_width=0, secondary_y=False)
         
         fig_timeline.update_layout(
-            title=dict(text="📰 News Sentiment Timeline", font=dict(size=18)),
+            title=dict(text="News Sentiment Timeline", font=dict(size=18)),
             template="plotly_dark", height=450,
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5),
             hovermode="x unified"
@@ -671,7 +671,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
             
             st.markdown(f"""
                 <div style='background: rgba(30,30,40,0.5); padding: 1rem; border-radius: 8px; margin-top: 0.5rem;'>
-                    <b>📊 Phân tích ngày gần nhất ({latest_day['date'].strftime('%Y-%m-%d')}):</b><br>
+                    <b>Phân tích ngày gần nhất ({latest_day['date'].strftime('%Y-%m-%d')}):</b><br>
                     • Sentiment: <b style='color: {"#00d4aa" if latest_day["news_sentiment_mean"] > 0 else "#ff6b6b"}'>{latest_day["news_sentiment_mean"]:.3f}</b><br>
                     • Thay đổi so với hôm trước: <b style='color: {"#00d4aa" if change > 0 else "#ff6b6b"}'>{change:+.3f}</b><br>
                     • Số tin: <b>{int(latest_day["news_count"])}</b> bài
@@ -686,7 +686,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #667eea; margin-bottom: 1rem;'>
-            <b>📖 Về Sentiment Score:</b> 
+            <b>Về Sentiment Score:</b> 
             🟢 Score > 0.05 = Tích cực | 
             🔴 Score < -0.05 = Tiêu cực | 
             ⚪ Còn lại = Trung lập
@@ -714,7 +714,7 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
                     <div style='flex: 1;'>
                         <span style='font-weight: 600; color: #eee; font-size: 0.95rem;'>{icon} {title}</span>
                         <div style='color: #999; font-size: 0.8rem; margin-top: 0.4rem;'>
-                            📰 {row['source']} • 📅 {row['date'].strftime('%Y-%m-%d %H:%M') if hasattr(row['date'], 'strftime') else row['date']}
+                            {row['source']} • {row['date'].strftime('%Y-%m-%d %H:%M') if hasattr(row['date'], 'strftime') else row['date']}
                         </div>
                     </div>
                     <div style='text-align: right; min-width: 80px;'>
@@ -728,12 +728,12 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
     st.markdown("---")
     
     # ============ Distribution Charts with Analysis ============
-    st.subheader("📊 Phân Bố Sentiment")
+    st.subheader("Phân Bố Sentiment")
     
     st.markdown("""
         <div style='background: rgba(118, 75, 162, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #764ba2; margin-bottom: 1rem;'>
-            <b>📖 Phân tích phân bố:</b> Biểu đồ histogram cho thấy sentiment của tin tức tập trung ở đâu.
+            <b>Phân tích phân bố:</b> Biểu đồ histogram cho thấy sentiment của tin tức tập trung ở đâu.
             Nếu phần lớn nằm bên phải (>0) = thị trường lạc quan, bên trái (<0) = bi quan.
         </div>
     """, unsafe_allow_html=True)
@@ -792,21 +792,21 @@ def render_news_sentiment_analysis(price_df: pd.DataFrame, selected_coin: str, r
     dominant_pct = label_counts.max() / total_count * 100
     
     if dominant == "positive" and dominant_pct > 50:
-        st.success(f"📈 **Phân tích**: {dominant_pct:.0f}% tin tức có sentiment tích cực - narrative thị trường đang lạc quan.")
+        st.success(f"**Phân tích**: {dominant_pct:.0f}% tin tức có sentiment tích cực - narrative thị trường đang lạc quan.")
     elif dominant == "negative" and dominant_pct > 50:
-        st.error(f"📉 **Phân tích**: {dominant_pct:.0f}% tin tức có sentiment tiêu cực - có thể có FUD hoặc tin xấu.")
+        st.error(f"**Phân tích**: {dominant_pct:.0f}% tin tức có sentiment tiêu cực - có thể có FUD hoặc tin xấu.")
     else:
-        st.info(f"📊 **Phân tích**: Tin tức phân bố khá đều - sentiment {dominant} chiếm {dominant_pct:.0f}%.")
+        st.info(f"**Phân tích**: Tin tức phân bố khá đều - sentiment {dominant} chiếm {dominant_pct:.0f}%.")
     
     st.markdown("---")
     
     # ============ Source Analysis ============
-    st.subheader("📰 Phân Tích Theo Nguồn Tin")
+    st.subheader("Phân Tích Theo Nguồn Tin")
     
     st.markdown("""
         <div style='background: rgba(0, 212, 170, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 3px solid #00d4aa; margin-bottom: 1rem;'>
-            <b>📖 Ý nghĩa:</b> So sánh sentiment trung bình từ các nguồn tin khác nhau.
+            <b>Ý nghĩa:</b> So sánh sentiment trung bình từ các nguồn tin khác nhau.
             Nguồn có sentiment cao = đưa tin tích cực, thấp = đưa tin tiêu cực.
         </div>
     """, unsafe_allow_html=True)

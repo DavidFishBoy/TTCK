@@ -21,13 +21,13 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_portfolio_analysis_page():
     """Render trang phân tích danh mục đầu tư."""
-    st.title("🧺 Phân Tích Danh Mục Đầu Tư")
+    st.title("Phân Tích Danh Mục Đầu Tư")
     
     # Page introduction
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>📊 Xây Dựng & Kiểm Thử Danh Mục</h3>
+            <h3 style='color: white; margin: 0;'>Xây Dựng & Kiểm Thử Danh Mục</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Phân tích các chiến lược xây dựng danh mục đầu tư khác nhau và đánh giá hiệu suất lịch sử.
                 So sánh giữa Equal Weight (phân bổ đều) và Risk Parity (phân bổ theo rủi ro).
@@ -44,12 +44,12 @@ def render_portfolio_analysis_page():
         return
     
     # Strategy Comparison
-    st.subheader("📊 So Sánh Chiến Lược")
+    st.subheader("So Sánh Chiến Lược")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bảng So Sánh Hiệu Suất Các Chiến Lược</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Bảng So Sánh Hiệu Suất Các Chiến Lược</h4>
             <p style='margin: 0; color: #ccc;'>
                 Bảng hiển thị kết quả backtest của 2 chiến lược phân bổ danh mục với vốn ban đầu $10,000 trên dữ liệu lịch sử.
                 Mỗi chiến lược có cách phân bổ tỷ trọng khác nhau giữa các coin.
@@ -93,20 +93,20 @@ def render_portfolio_analysis_page():
     col1, col2 = st.columns(2)
     with col1:
         st.info("""
-            **📌 Equal Weight (Phân bổ đều)**  
+            **Equal Weight (Phân bổ đều)**  
             Phân bổ vốn đều cho tất cả coin (mỗi coin = 1/N).  
             Đơn giản, dễ hiểu, không cần dự đoán tương lai.
         """)
     with col2:
         st.info("""
-            **📌 Risk Parity (Theo rủi ro)**  
+            **Risk Parity (Theo rủi ro)**  
             Phân bổ sao cho mỗi coin đóng góp rủi ro như nhau.  
             Coin biến động ít được phân bổ nhiều hơn.
         """)
     
     # Individual Strategy Analysis
     st.markdown("---")
-    st.subheader("🔍 Phân Tích Chi Tiết Chiến Lược")
+    st.subheader("Phân Tích Chi Tiết Chiến Lược")
     
     strategy = st.selectbox(
         "Chọn Chiến Lược",
@@ -128,7 +128,7 @@ def render_portfolio_analysis_page():
         st.markdown("""
             <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                         border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📈 Đường Cong Vốn - Lịch Sử Giá Trị Danh Mục</h4>
+                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Đường Cong Vốn - Lịch Sử Giá Trị Danh Mục</h4>
                 <p style='margin: 0; color: #ccc;'>
                     Biểu đồ cho thấy giá trị danh mục theo thời gian nếu bạn đầu tư $10,000 từ đầu kỳ.
                     Vùng tô màu bên dưới cho thấy sự tăng trưởng tổng thể.
@@ -208,25 +208,25 @@ def render_portfolio_analysis_page():
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("📈 Tổng Lợi Nhuận", f"{metrics['total_return']:.2f}%")
+            st.metric("Tổng Lợi Nhuận", f"{metrics['total_return']:.2f}%")
         
         with col2:
-            st.metric("⚖️ Sharpe Ratio", f"{metrics['sharpe_ratio']:.2f}")
+            st.metric("Sharpe Ratio", f"{metrics['sharpe_ratio']:.2f}")
         
         with col3:
-            st.metric("📉 Max Drawdown", f"{metrics['max_drawdown']:.2f}%")
+            st.metric("Max Drawdown", f"{metrics['max_drawdown']:.2f}%")
         
         with col4:
-            st.metric("📊 CAGR", f"{metrics['cagr']:.2f}%")
+            st.metric("CAGR", f"{metrics['cagr']:.2f}%")
         
         # Weights
         st.markdown("---")
-        st.subheader("⚖️ Tỷ Trọng Danh Mục")
+        st.subheader("Tỷ Trọng Danh Mục")
         
         st.markdown("""
             <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                         border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>⚖️ Tỷ Trọng Phân Bổ Danh Mục</h4>
+                <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Tỷ Trọng Phân Bổ Danh Mục</h4>
                 <p style='margin: 0; color: #ccc;'>
                     Bảng và biểu đồ tròn hiển thị phần trăm vốn phân bổ cho mỗi coin theo chiến lược đã chọn.
                     Đây là thông tin quan trọng để bạn tái tạo danh mục trong thực tế.
@@ -251,7 +251,7 @@ def render_portfolio_analysis_page():
         col1, col2 = st.columns([1, 1.5])
         
         with col1:
-            st.markdown("**📋 Bảng Tỷ Trọng**")
+            st.markdown("**Bảng Tỷ Trọng**")
             st.dataframe(
                 weights_df.style.format({'Tỷ Trọng': '{:.2f}%'}),
                 width='stretch',
@@ -269,7 +269,7 @@ def render_portfolio_analysis_page():
                 marker=dict(colors=['#667eea', '#764ba2', '#00d4aa', '#ffc107', '#ff6b6b', '#17a2b8', '#28a745', '#fd7e14', '#6f42c1'])
             )])
             fig_pie.update_layout(
-                title=dict(text="📊 Phân Bổ Danh Mục", font=dict(size=18)),
+                title=dict(text="Phân Bổ Danh Mục", font=dict(size=18)),
                 height=450,
                 showlegend=True,
                 legend=dict(
@@ -312,10 +312,10 @@ def render_portfolio_analysis_page():
     
     # Recommendations
     st.markdown("---")
-    st.subheader("💡 Khuyến Nghị Danh Mục")
+    st.subheader("Khuyến Nghị Danh Mục")
     
     st.success(f"""
-        **🏆 Chiến Lược Được Khuyến Nghị: {best_strategy}**  
+        **Chiến Lược Được Khuyến Nghị: {best_strategy}**  
         
         Dựa trên lợi nhuận điều chỉnh rủi ro (Sharpe Ratio), chiến lược **{best_strategy}** 
         cho kết quả tốt nhất trên dữ liệu lịch sử.
@@ -327,14 +327,14 @@ def render_portfolio_analysis_page():
     col1, col2 = st.columns(2)
     with col1:
         st.info("""
-            **📊 Khi Nào Dùng Equal Weight?**
+            **Khi Nào Dùng Equal Weight?**
             - Không chắc chắn về coin nào sẽ tốt hơn
             - Muốn đơn giản, dễ tái cân bằng
             - Tin tưởng vào tất cả coin trong danh sách
         """)
     with col2:
         st.info("""
-            **📊 Khi Nào Dùng Risk Parity?**
+            **Khi Nào Dùng Risk Parity?**
             - Muốn kiểm soát rủi ro tốt hơn
             - Ưu tiên ổn định hơn lợi nhuận tối đa
             - Tránh coin biến động cao chiếm quá nhiều rủi ro

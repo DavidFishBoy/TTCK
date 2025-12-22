@@ -14,13 +14,13 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_quant_metrics_page():
     """Render trang chỉ số định lượng."""
-    st.title("📐 Chỉ Số Định Lượng")
+    st.title("Chỉ Số Định Lượng")
     
     # Page introduction
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>📊 Phân Tích Hiệu Suất Điều Chỉnh Rủi Ro</h3>
+            <h3 style='color: white; margin: 0;'>Phân Tích Hiệu Suất Điều Chỉnh Rủi Ro</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 So sánh các đồng coin dựa trên các chỉ số định lượng được các nhà đầu tư chuyên nghiệp sử dụng.
                 Các chỉ số này giúp đánh giá hiệu suất đầu tư có tính đến yếu tố rủi ro.
@@ -50,13 +50,13 @@ def render_quant_metrics_page():
     metrics_df = pd.DataFrame(all_metrics)
     
     # Display ranking table
-    st.subheader("🏆 Xếp Hạng Coin Theo Chỉ Số")
+    st.subheader("Xếp Hạng Coin Theo Chỉ Số")
     
     # Chart explanation
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Bảng Xếp Hạng Coin Theo Chỉ Số Định Lượng</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Bảng Xếp Hạng Coin Theo Chỉ Số Định Lượng</h4>
             <p style='margin: 0; color: #ccc;'>
                 Bảng xếp hạng các coin theo chỉ số định lượng bạn chọn. Cột "Xếp Hạng" hiển thị thứ tự từ tốt nhất đến kém nhất.
                 Các chỉ số này được nhà đầu tư chuyên nghiệp sử dụng để đánh giá hiệu suất điều chỉnh rủi ro.
@@ -152,7 +152,7 @@ def render_quant_metrics_page():
     
     # Analysis based on selected sort metric
     st.markdown("---")
-    st.subheader(f"📈 Phân Tích Theo {sort_options[sort_by]}")
+    st.subheader(f"Phân Tích Theo {sort_options[sort_by]}")
     
     top_coin = sorted_df.iloc[0]
     bottom_coin = sorted_df.iloc[-1]
@@ -162,7 +162,7 @@ def render_quant_metrics_page():
     with col1:
         if sort_by == 'sharpe_ratio':
             st.success(f"""
-                #### 🥇 Coin Tốt Nhất: {top_coin['coin'].upper()}
+                #### Coin Tốt Nhất: {top_coin['coin'].upper()}
                 **Sharpe Ratio: {top_coin['sharpe_ratio']:.2f}**
                 
                 Coin này có tỷ lệ lợi nhuận trên mỗi đơn vị rủi ro cao nhất. 
@@ -173,7 +173,7 @@ def render_quant_metrics_page():
             """)
         elif sort_by == 'sortino_ratio':
             st.success(f"""
-                #### 🥇 Coin Tốt Nhất: {top_coin['coin'].upper()}
+                #### Coin Tốt Nhất: {top_coin['coin'].upper()}
                 **Sortino Ratio: {top_coin['sortino_ratio']:.2f}**
                 
                 Coin này có tỷ lệ lợi nhuận/rủi ro giảm giá tốt nhất. 
@@ -182,7 +182,7 @@ def render_quant_metrics_page():
             """)
         elif sort_by == 'calmar_ratio':
             st.success(f"""
-                #### 🥇 Coin Tốt Nhất: {top_coin['coin'].upper()}
+                #### Coin Tốt Nhất: {top_coin['coin'].upper()}
                 **Calmar Ratio: {top_coin['calmar_ratio']:.2f}**
                 
                 Coin này có tỷ lệ lợi nhuận/sụt giảm tối đa cao nhất. 
@@ -190,7 +190,7 @@ def render_quant_metrics_page():
             """)
         elif sort_by == 'cagr':
             st.success(f"""
-                #### 🥇 Coin Tốt Nhất: {top_coin['coin'].upper()}
+                #### Coin Tốt Nhất: {top_coin['coin'].upper()}
                 **CAGR: {top_coin['cagr']:.2f}%**
                 
                 Coin này có tốc độ tăng trưởng hàng năm cao nhất. 
@@ -198,7 +198,7 @@ def render_quant_metrics_page():
             """)
         else:  # max_drawdown
             st.success(f"""
-                #### 🥇 Coin An Toàn Nhất: {top_coin['coin'].upper()}
+                #### Coin An Toàn Nhất: {top_coin['coin'].upper()}
                 **Max Drawdown: {top_coin['max_drawdown']:.2f}%**
                 
                 Coin này có mức sụt giảm tối đa thấp nhất. 
@@ -208,7 +208,7 @@ def render_quant_metrics_page():
     with col2:
         if sort_by != 'max_drawdown':
             st.warning(f"""
-                #### ⚠️ Coin Cần Cân Nhắc: {bottom_coin['coin'].upper()}
+                #### Coin Cần Cân Nhắc: {bottom_coin['coin'].upper()}
                 **{sort_options[sort_by].split('(')[0].strip()}: {bottom_coin[sort_by]:.2f}**
                 
                 Coin này xếp cuối theo chỉ số đã chọn. Tuy nhiên, 
@@ -217,7 +217,7 @@ def render_quant_metrics_page():
             """)
         else:
             st.warning(f"""
-                #### ⚠️ Coin Rủi Ro Cao: {bottom_coin['coin'].upper()}
+                #### Coin Rủi Ro Cao: {bottom_coin['coin'].upper()}
                 **Max Drawdown: {bottom_coin['max_drawdown']:.2f}%**
                 
                 Coin này có mức sụt giảm tối đa cao nhất, nghĩa là 
@@ -227,7 +227,7 @@ def render_quant_metrics_page():
     
     # Key Metrics Explanation
     st.markdown("---")
-    st.subheader("📚 Giải Thích Các Chỉ Số")
+    st.subheader("Giải Thích Các Chỉ Số")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
@@ -238,25 +238,25 @@ def render_quant_metrics_page():
     
     with col1:
         st.markdown("""
-        **📈 CAGR (Compound Annual Growth Rate)**  
+        **CAGR (Compound Annual Growth Rate)**  
         Tỷ lệ tăng trưởng kép hàng năm. Cho biết trung bình mỗi năm tài sản tăng bao nhiêu %.
         
-        **📊 Biến Động (Volatility)**  
+        **Biến Động (Volatility)**  
         Độ lệch chuẩn của lợi nhuận hàng năm. Biến động cao = rủi ro cao.
         
-        **⚖️ Sharpe Ratio**  
+        **Sharpe Ratio**  
         Lợi nhuận vượt trội trên mỗi đơn vị rủi ro. Sharpe > 1 là tốt.
         """)
     
     with col2:
         st.markdown("""
-        **📉 Sortino Ratio**  
+        **Sortino Ratio**  
         Giống Sharpe nhưng chỉ tính rủi ro khi giá giảm. Tốt hơn Sharpe cho đánh giá downside risk.
         
-        **🎯 Calmar Ratio**  
+        **Calmar Ratio**  
         Lợi nhuận chia cho mức sụt giảm tối đa. Đánh giá khả năng phục hồi sau downtrend.
         
-        **🔻 Max Drawdown**  
+        **Max Drawdown**  
         Mức giảm lớn nhất từ đỉnh xuống đáy. Cho biết rủi ro tối đa trong quá khứ.
         """)
     
@@ -264,26 +264,26 @@ def render_quant_metrics_page():
     
     # Top Performers Summary
     st.markdown("---")
-    st.subheader("🎯 Top 3 Theo Từng Chỉ Số")
+    st.subheader("Top 3 Theo Từng Chỉ Số")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("**🏆 Sharpe Ratio Cao Nhất**")
+        st.markdown("**Sharpe Ratio Cao Nhất**")
         top_sharpe = metrics_df.nlargest(3, 'sharpe_ratio')
         for i, (_, row) in enumerate(top_sharpe.iterrows(), 1):
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉"
             st.markdown(f"{medal} **{row['coin'].upper()}**: {row['sharpe_ratio']:.2f}")
     
     with col2:
-        st.markdown("**🏆 Sortino Ratio Cao Nhất**")
+        st.markdown("**Sortino Ratio Cao Nhất**")
         top_sortino = metrics_df.nlargest(3, 'sortino_ratio')
         for i, (_, row) in enumerate(top_sortino.iterrows(), 1):
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉"
             st.markdown(f"{medal} **{row['coin'].upper()}**: {row['sortino_ratio']:.2f}")
     
     with col3:
-        st.markdown("**🏆 Max Drawdown Thấp Nhất**")
+        st.markdown("**Max Drawdown Thấp Nhất**")
         top_dd = metrics_df.nsmallest(3, 'max_drawdown')
         for i, (_, row) in enumerate(top_dd.iterrows(), 1):
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉"

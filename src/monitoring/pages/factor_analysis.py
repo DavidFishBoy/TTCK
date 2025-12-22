@@ -18,13 +18,13 @@ from src.assistant.chart_analyzer import get_chart_analyzer
 
 def render_factor_analysis_page():
     """Render trang phân tích nhân tố."""
-    st.title("🧩 Phân Tích Nhân Tố")
+    st.title("Phân Tích Nhân Tố")
     
     # Page introduction
     st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;'>
-            <h3 style='color: white; margin: 0;'>🔍 Hiểu Động Lực Thúc Đẩy Giá</h3>
+            <h3 style='color: white; margin: 0;'>Hiểu Động Lực Thúc Đẩy Giá</h3>
             <p style='color: rgba(255,255,255,0.9); margin: 0.5rem 0 0 0;'>
                 Phân tích các yếu tố quan trọng ảnh hưởng đến hiệu suất coin như momentum, 
                 biến động, quy mô và thanh khoản. Giúp phân loại coin theo đặc điểm.
@@ -44,17 +44,17 @@ def render_factor_analysis_page():
     factor_df = create_factor_dataframe(data_dict)
     
     # Factor Scatter Plot
-    st.subheader("📊 Biểu Đồ Phân Tán Nhân Tố")
+    st.subheader("Biểu Đồ Phân Tán Nhân Tố")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>📊 Biểu Đồ Này Cho Biết Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Biểu Đồ Này Cho Biết Gì?</h4>
             <p style='margin: 0; color: #ccc;'>
                 So sánh các coin theo 2 nhân tố bạn chọn. Vị trí của coin trên biểu đồ 
                 cho thấy đặc điểm của nó so với các coin khác.
             </p>
-            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>💡 Giải Thích Nhân Tố</h4>
+            <h4 style='margin: 1rem 0 0.5rem 0; color: #667eea;'>Giải Thích Nhân Tố</h4>
             <ul style='margin: 0; color: #ccc; padding-left: 1.5rem;'>
                 <li><strong>Momentum</strong>: Đà tăng/giảm giá trong 30 hoặc 90 ngày</li>
                 <li><strong>Biến Động</strong>: Mức độ dao động giá</li>
@@ -107,7 +107,7 @@ def render_factor_analysis_page():
         st.plotly_chart(fig, width='stretch')
         
         # Quadrant Analysis
-        st.markdown("**📊 Phân Tích Theo Góc Phần Tư:**")
+        st.markdown("**Phân Tích Theo Góc Phần Tư:**")
         quadrants = scatter_data.groupby('quadrant')['coin'].apply(list).to_dict()
         
         col1, col2 = st.columns(2)
@@ -148,12 +148,12 @@ def render_factor_analysis_page():
     
     # Clustering
     st.markdown("---")
-    st.subheader("🔍 Phân Cụm Coin")
+    st.subheader("Phân Cụm Coin")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
                     border-left: 4px solid #667eea; margin-bottom: 1rem;'>
-            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>🔍 Phân Cụm Là Gì?</h4>
+            <h4 style='margin: 0 0 0.5rem 0; color: #667eea;'>Phân Cụm Là Gì?</h4>
             <p style='margin: 0; color: #ccc;'>
                 Thuật toán K-Means nhóm các coin có đặc điểm tương tự lại với nhau.
                 Coin trong cùng cụm có xu hướng hoạt động giống nhau.
@@ -223,7 +223,7 @@ def render_factor_analysis_page():
     
     # Factor Summary
     st.markdown("---")
-    st.subheader("📋 Bảng Tóm Tắt Nhân Tố")
+    st.subheader("Bảng Tóm Tắt Nhân Tố")
     
     st.markdown("""
         <div style='background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; 
@@ -253,7 +253,7 @@ def render_factor_analysis_page():
     
     # Insights
     st.markdown("---")
-    st.subheader("💡 Nhận Định Nhân Tố")
+    st.subheader("Nhận Định Nhân Tố")
     
     # Find best momentum coin
     best_mom = factor_df.loc[factor_df['momentum_30d'].idxmax()]
@@ -262,7 +262,7 @@ def render_factor_analysis_page():
     col1, col2 = st.columns(2)
     with col1:
         st.success(f"""
-            **🚀 Momentum Cao Nhất**: {best_mom['coin'].upper()}
+            **Momentum Cao Nhất**: {best_mom['coin'].upper()}
             
             Momentum 30 ngày: {best_mom['momentum_30d']:.2f}%
             
@@ -270,7 +270,7 @@ def render_factor_analysis_page():
         """)
     with col2:
         st.info(f"""
-            **🛡️ Biến Động Thấp Nhất**: {lowest_vol['coin'].upper()}
+            **Biến Động Thấp Nhất**: {lowest_vol['coin'].upper()}
             
             Biến động: {lowest_vol['volatility']:.2f}%
             
