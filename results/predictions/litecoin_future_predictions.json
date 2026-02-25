@@ -1,27 +1,27 @@
 {
     "coin": "litecoin",
-    "prediction_generated_at": "2025-12-21 13:32:03",
+    "prediction_generated_at": "2026-02-02 09:04:19",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 77.17258312225341
+            "expected_price": 59.309193985462194
         },
         {
             "day": 2,
-            "expected_price": 77.17563741893727
+            "expected_price": 59.31232608710952
         },
         {
             "day": 3,
-            "expected_price": 77.18158985316832
+            "expected_price": 59.31603107116285
         },
         {
             "day": 4,
-            "expected_price": 77.18877564867519
+            "expected_price": 59.31183441965157
         },
         {
             "day": 5,
-            "expected_price": 77.19223545745919
+            "expected_price": 59.32910770402571
         }
     ],
     "explanation": "These predictions represent the model's best estimate of litecoin closing prices for the next 5 days, based on historical patterns and recent data."

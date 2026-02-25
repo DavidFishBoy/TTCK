@@ -125,7 +125,7 @@ def render_factor_analysis_page():
         # AI Analysis Button for Scatter Plot
         chart_analyzer = get_chart_analyzer()
         if st.button("🤖 AI Phân Tích Biểu Đồ Nhân Tố", key="analyze_factors"):
-            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            with st.spinner("🔄 Đang phân tích với Gemini..."):
                 # Prepare scatter data summary
                 scatter_summary = ""
                 for _, row in scatter_data.iterrows():
@@ -196,7 +196,7 @@ def render_factor_analysis_page():
     
     # AI Analysis Button for Clusters
     if st.button("🤖 AI Phân Tích Phân Cụm", key="analyze_clusters"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Prepare cluster details
             cluster_details = ""
             for cluster_id in sorted(clustered_df['cluster'].unique()):

@@ -1,27 +1,27 @@
 {
     "coin": "cardano",
-    "prediction_generated_at": "2025-12-21 13:32:08",
+    "prediction_generated_at": "2026-02-02 09:04:23",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 0.3682475359678269
+            "expected_price": 0.2903830889225006
         },
         {
             "day": 2,
-            "expected_price": 0.3682360126044522
+            "expected_price": 0.29062955741800406
         },
         {
             "day": 3,
-            "expected_price": 0.3682183878973422
+            "expected_price": 0.29102455353465684
         },
         {
             "day": 4,
-            "expected_price": 0.3682664090846905
+            "expected_price": 0.29171292867284837
         },
         {
             "day": 5,
-            "expected_price": 0.36826487255749574
+            "expected_price": 0.29259600225439114
         }
     ],
     "explanation": "These predictions represent the model's best estimate of cardano closing prices for the next 5 days, based on historical patterns and recent data."

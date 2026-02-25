@@ -1,27 +1,27 @@
 {
     "coin": "solana",
-    "prediction_generated_at": "2025-12-21 13:32:10",
+    "prediction_generated_at": "2026-02-02 09:04:25",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 125.279922208786
+            "expected_price": 102.31742506742476
         },
         {
             "day": 2,
-            "expected_price": 125.4432611690995
+            "expected_price": 102.6026075095536
         },
         {
             "day": 3,
-            "expected_price": 125.72008965491769
+            "expected_price": 103.18087342421269
         },
         {
             "day": 4,
-            "expected_price": 126.28373583457369
+            "expected_price": 104.06682636789526
         },
         {
             "day": 5,
-            "expected_price": 126.93869867166833
+            "expected_price": 105.30780900077781
         }
     ],
     "explanation": "These predictions represent the model's best estimate of solana closing prices for the next 5 days, based on historical patterns and recent data."

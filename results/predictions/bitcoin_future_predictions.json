@@ -1,27 +1,27 @@
 {
     "coin": "bitcoin",
-    "prediction_generated_at": "2025-12-21 13:32:02",
+    "prediction_generated_at": "2026-02-02 09:04:16",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 88163.91869280816
+            "expected_price": 77441.19626897335
         },
         {
             "day": 2,
-            "expected_price": 88202.38513949582
+            "expected_price": 77459.41043278201
         },
         {
             "day": 3,
-            "expected_price": 88217.85203323315
+            "expected_price": 77450.16270067336
         },
         {
             "day": 4,
-            "expected_price": 88224.01463628857
+            "expected_price": 77437.90618672193
         },
         {
             "day": 5,
-            "expected_price": 88255.81841353745
+            "expected_price": 77432.73203310579
         }
     ],
     "explanation": "These predictions represent the model's best estimate of bitcoin closing prices for the next 5 days, based on historical patterns and recent data."

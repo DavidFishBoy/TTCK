@@ -1,27 +1,27 @@
 {
     "coin": "binancecoin",
-    "prediction_generated_at": "2025-12-21 13:32:06",
+    "prediction_generated_at": "2026-02-02 09:04:21",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 849.4966941833496
+            "expected_price": 764.6880650568008
         },
         {
             "day": 2,
-            "expected_price": 849.6309754152879
+            "expected_price": 764.6743913686563
         },
         {
             "day": 3,
-            "expected_price": 849.7547443471485
+            "expected_price": 764.663315879308
         },
         {
             "day": 4,
-            "expected_price": 850.0594507145215
+            "expected_price": 764.6430794758278
         },
         {
             "day": 5,
-            "expected_price": 850.217229283357
+            "expected_price": 764.5998275869314
         }
     ],
     "explanation": "These predictions represent the model's best estimate of binancecoin closing prices for the next 5 days, based on historical patterns and recent data."

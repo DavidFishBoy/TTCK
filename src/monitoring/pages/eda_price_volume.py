@@ -155,7 +155,7 @@ def render_price_volume_page():
     
     # AI Analysis Button for Price/MA Chart
     if st.button("🤖 AI Phân Tích Biểu Đồ Giá & MA", key="analyze_price_ma"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Detect cross signal
             if len(df) > 50:
                 ma20_prev = df['MA20'].iloc[-2]
@@ -282,7 +282,7 @@ def render_price_volume_page():
     
     # AI Analysis Button for Volume
     if st.button("🤖 AI Phân Tích Khối Lượng", key="analyze_volume"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             chart_data = {
                 "avg_volume_20d": avg_volume_20d,
                 "volume_vs_avg": volume_vs_avg,
@@ -367,7 +367,7 @@ def render_price_volume_page():
     
     # AI Analysis Button for Returns Histogram
     if st.button("🤖 AI Phân Tích Phân Phối Lợi Nhuận", key="analyze_returns_hist"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             chart_data = {
                 "mean_return": returns.mean(),
                 "std_return": returns.std(),

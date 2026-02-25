@@ -130,7 +130,7 @@ def render_volatility_risk_page():
     
     # AI Analysis Button for Volatility Chart
     if st.button("🤖 AI Phân Tích Biểu Đồ Biến Động", key="analyze_volatility"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Prepare chart data
             vol_14d_latest = vol_14d.iloc[-1] * 100 if len(vol_14d) > 0 else 0
             vol_30d_latest = vol_30d.iloc[-1] * 100 if len(vol_30d) > 0 else 0
@@ -218,7 +218,7 @@ def render_volatility_risk_page():
     
     # AI Analysis Button for Drawdown Chart
     if st.button("🤖 AI Phân Tích Biểu Đồ Drawdown", key="analyze_drawdown"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             current_dd = drawdown_series.iloc[-1] * 100 if len(drawdown_series) > 0 else 0
             dd_count_20 = (drawdown_series < -0.2).sum()
             
@@ -309,7 +309,7 @@ def render_volatility_risk_page():
     
     # AI Analysis Button for Returns Distribution
     if st.button("🤖 AI Phân Tích Phân Phối Lợi Nhuận", key="analyze_returns"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             positive_days = (returns > 0).sum()
             total_days = len(returns)
             

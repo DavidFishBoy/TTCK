@@ -122,7 +122,7 @@ def render_quant_metrics_page():
     # AI Analysis Button for Quant Metrics
     chart_analyzer = get_chart_analyzer()
     if st.button("🤖 AI Phân Tích Chỉ Số Định Lượng", key="analyze_quant"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Prepare metrics table
             metrics_table = ""
             for _, row in display_df.head(5).iterrows():

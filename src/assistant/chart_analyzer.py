@@ -19,33 +19,35 @@ class ChartAnalyzer:
         cache_enabled: bool = True,
         cache_duration_hours: int = 24,
         cache_dir: str = "data/cache/chart_analysis",
-        model: str = "gpt-4o-mini"
+        model: Optional[str] = None
     ):
         if api_key is None:
-            api_key = os.getenv("OPENAI_API_KEY")
+            api_key = os.getenv("GEMINI_API_KEY")
         self.api_key = api_key
+        
+        if model is None:
+            model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self.model = model
         
         self.cache_enabled = cache_enabled
         self.cache_duration = timedelta(hours=cache_duration_hours)
         self.cache_dir = Path(cache_dir)
         
-        self.model = model
-        
         self.client = None
-        self._init_openai()
+        self._init_gemini()
         
         if self.cache_enabled:
             self.cache_dir.mkdir(parents=True, exist_ok=True)
     
-    def _init_openai(self):
+    def _init_gemini(self):
         if self.api_key:
             try:
-                from openai import OpenAI
-                self.client = OpenAI(api_key=self.api_key)
+                from google import genai
+                self.client = genai.Client(api_key=self.api_key)
             except ImportError:
-                print("⚠️ openai package not installed. Run: pip install openai")
+                print("⚠️ google-genai package not installed. Run: pip install google-genai")
             except Exception as e:
-                print(f"⚠️ Failed to initialize OpenAI: {e}")
+                print(f"⚠️ Failed to initialize Gemini: {e}")
     
     def _generate_cache_key(
         self, 
@@ -149,27 +151,30 @@ Hãy phân tích biểu đồ này và đưa ra nhận xét chi tiết về ý n
         except KeyError as e:
             return template + f"\n\n**Dữ liệu bổ sung:** {json.dumps(chart_data, ensure_ascii=False)}"
     
-    def _call_openai(self, prompt: str) -> str:
+    def _call_gemini(self, prompt: str) -> str:
         if not self.client:
             return self._get_fallback_analysis(prompt)
         
         try:
-            response = self.client.chat.completions.create(
+            # Combine system prompt with user prompt for Gemini
+            system_prompt = get_system_prompt()
+            full_prompt = f"{system_prompt}\n\n{prompt}"
+            
+            response = self.client.models.generate_content(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": get_system_prompt()},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1000
+                contents=full_prompt,
+                config={
+                    "temperature": 0.7,
+                    "max_output_tokens": 2000,
+                }
             )
             
-            return response.choices[0].message.content
+            return response.text
             
         except Exception as e:
             error_str = str(e)
-            if "insufficient_quota" in error_str.lower():
-                return f"❌ **Hết quota API:** Vui lòng nạp thêm credit tại [platform.openai.com/account/billing](https://platform.openai.com/account/billing)\n\n*Chi tiết: {error_str}*"
+            if "quota" in error_str.lower() or "rate" in error_str.lower():
+                return f"❌ **Hết quota API:** Vui lòng kiểm tra quota tại [Google AI Studio](https://aistudio.google.com)\n\n*Chi tiết: {error_str}*"
             return f"❌ **Lỗi khi gọi API:** {error_str}\n\nVui lòng kiểm tra API key và kết nối mạng."
     
     def _get_fallback_analysis(self, prompt: str) -> str:
@@ -177,20 +182,20 @@ Hãy phân tích biểu đồ này và đưa ra nhận xét chi tiết về ý n
 
 Để sử dụng tính năng phân tích AI, vui lòng:
 
-1. **Lấy API key từ OpenAI:**
-   - Truy cập [platform.openai.com](https://platform.openai.com)
+1. **Lấy API key từ Google AI Studio:**
+   - Truy cập [aistudio.google.com](https://aistudio.google.com)
    - Tạo API key mới
 
 2. **Thêm vào file `.env`:**
    ```
-   OPENAI_API_KEY=sk-proj-xxxxx
+   GEMINI_API_KEY=AIzaSy...xxxxx
    ```
 
 3. **Khởi động lại dashboard**
 
 ---
 
-💡 *Model gpt-4o-mini rất rẻ: ~$0.15/1M tokens input*
+💡 *Gemini API miễn phí với quota hàng ngày rất lớn!*
 """
     
     def analyze_chart(
@@ -210,7 +215,7 @@ Hãy phân tích biểu đồ này và đưa ra nhận xét chi tiết về ý n
         
         prompt = self._build_prompt(chart_type, coin, chart_data, chart_title)
         
-        analysis = self._call_openai(prompt)
+        analysis = self._call_gemini(prompt)
         
         if "❌" not in analysis and "⚠️ **Chưa cấu hình" not in analysis:
             self._save_cache(coin, chart_type, chart_data, analysis)

@@ -282,7 +282,7 @@ def render_compare_models_page():
     # AI Analysis Button for Model Comparison
     chart_analyzer = get_chart_analyzer()
     if st.button("🤖 AI Phân Tích So Sánh Mô Hình", key="analyze_models"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Prepare models table summary
             models_table = ""
             for _, row in display_df.iterrows():
@@ -379,7 +379,7 @@ def render_compare_models_page():
     
     # AI Analysis Button for Predictions vs Actual
     if st.button("🤖 AI Phân Tích Dự Đoán vs Thực Tế", key="analyze_pred_vs_actual"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             chart_data = {
                 "coin": selected_coin,
                 "selected_models": ", ".join(selected_models),

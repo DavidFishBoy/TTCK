@@ -123,7 +123,7 @@ def render_correlation_page():
     
     # AI Analysis Button for Correlation Matrix
     if st.button("🤖 AI Phân Tích Ma Trận Tương Quan", key="analyze_corr_matrix"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             chart_data = {
                 "avg_correlation": avg_corr,
                 "highest_pair": f"{highest_pair[0].upper()} & {highest_pair[1].upper()}",
@@ -201,7 +201,7 @@ def render_correlation_page():
         
         # AI Analysis Button for Rolling Correlation
         if st.button("🤖 AI Phân Tích Tương Quan Lăn Với BTC", key="analyze_rolling_corr"):
-            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            with st.spinner("🔄 Đang phân tích với Gemini..."):
                 # Calculate summary stats
                 correlation_summary = ""
                 most_stable = None

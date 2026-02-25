@@ -1,27 +1,27 @@
 {
     "coin": "axieinfinity",
-    "prediction_generated_at": "2025-12-21 13:32:14",
+    "prediction_generated_at": "2026-02-02 09:04:29",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 0.8632003027200699
+            "expected_price": 1.725272673368454
         },
         {
             "day": 2,
-            "expected_price": 0.8632185162846543
+            "expected_price": 1.7253971028289066
         },
         {
             "day": 3,
-            "expected_price": 0.8630809340831409
+            "expected_price": 1.7247160852146055
         },
         {
             "day": 4,
-            "expected_price": 0.8630174526406502
+            "expected_price": 1.7240856061321033
         },
         {
             "day": 5,
-            "expected_price": 0.8626146786253323
+            "expected_price": 1.717563000618029
         }
     ],
     "explanation": "These predictions represent the model's best estimate of axieinfinity closing prices for the next 5 days, based on historical patterns and recent data."

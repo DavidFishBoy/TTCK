@@ -89,7 +89,7 @@ def render_market_overview_page():
     # AI Analysis Button for Returns Heatmap
     chart_analyzer = get_chart_analyzer()
     if st.button("🤖 AI Phân Tích Bản Đồ Nhiệt Lợi Nhuận", key="analyze_heatmap"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Calculate metrics from heatmap_df
             best_coin_30d = heatmap_df.loc[heatmap_df['30D'].idxmax(), 'coin'].upper()
             best_return_30d = heatmap_df['30D'].max()
@@ -188,7 +188,7 @@ def render_market_overview_page():
     
     # AI Analysis Button for Coin Ranking
     if st.button("🤖 AI Phân Tích Xếp Hạng", key="analyze_ranking"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             top_3 = ", ".join(ranked_df['coin'].head(3).str.upper().tolist())
             bottom_3 = ", ".join(ranked_df['coin'].tail(3).str.upper().tolist())
             range_value = f"{ranked_df['value'].max():,.2f} - {ranked_df['value'].min():,.2f}"
@@ -267,7 +267,7 @@ def render_market_overview_page():
     
     # AI Analysis Button for Market Breadth
     if st.button("🤖 AI Phân Tích Độ Rộng Thị Trường", key="analyze_breadth"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             pct_up_7d = breadth_df[breadth_df['period'] == '7D']['pct_up'].values[0] if len(breadth_df[breadth_df['period'] == '7D']) > 0 else 0
             pct_up_30d = breadth_df[breadth_df['period'] == '30D']['pct_up'].values[0] if len(breadth_df[breadth_df['period'] == '30D']) > 0 else 0
             pct_up_90d = breadth_df[breadth_df['period'] == '90D']['pct_up'].values[0] if len(breadth_df[breadth_df['period'] == '90D']) > 0 else 0
@@ -349,7 +349,7 @@ def render_market_overview_page():
         
         # AI Analysis Button for Liquidity
         if st.button("🤖 AI Phân Tích Thanh Khoản", key="analyze_liquidity"):
-            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            with st.spinner("🔄 Đang phân tích với Gemini..."):
                 top_liquid = liq_df.iloc[0]
                 bottom_liquid = liq_df.iloc[-1]
                 

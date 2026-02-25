@@ -423,7 +423,7 @@ def render_fear_greed_analysis(price_df: pd.DataFrame, selected_coin: str, refre
     # AI Analysis Button for Fear & Greed Chart
     chart_analyzer = get_chart_analyzer()
     if st.button("🤖 AI Phân Tích Fear & Greed", key="analyze_fng"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             latest = sentiment_df.iloc[-1] if not sentiment_df.empty else {}
             fng_7d_avg = sentiment_df['fng_value'].tail(7).mean()
             fng_30d_avg = sentiment_df['fng_value'].tail(30).mean()

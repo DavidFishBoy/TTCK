@@ -462,7 +462,7 @@ def render_prediction_page():
     # AI Analysis Button for Prediction Chart
     chart_analyzer = get_chart_analyzer()
     if st.button("🤖 AI Phân Tích Biểu Đồ Dự Đoán", key="analyze_prediction"):
-        with st.spinner("🔄 Đang phân tích với GPT-4..."):
+        with st.spinner("🔄 Đang phân tích với Gemini..."):
             # Prepare predictions summary
             predictions_summary = ""
             final_pred = 0

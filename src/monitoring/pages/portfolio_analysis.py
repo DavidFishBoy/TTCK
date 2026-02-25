@@ -168,7 +168,7 @@ def render_portfolio_analysis_page():
         # AI Analysis Button for Portfolio Chart
         chart_analyzer = get_chart_analyzer()
         if st.button("🤖 AI Phân Tích Danh Mục", key="analyze_portfolio"):
-            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            with st.spinner("🔄 Đang phân tích với Gemini..."):
                 metrics = calculate_portfolio_metrics(portfolio_df)
                 
                 # Prepare strategies summary
@@ -285,7 +285,7 @@ def render_portfolio_analysis_page():
         
         # AI Analysis Button for Portfolio Allocation
         if st.button("🤖 AI Phân Tích Phân Bổ Danh Mục", key="analyze_allocation"):
-            with st.spinner("🔄 Đang phân tích với GPT-4..."):
+            with st.spinner("🔄 Đang phân tích với Gemini..."):
                 top_weight_coin = weights_df.index[0]
                 top_weight = weights_df['Tỷ Trọng'].iloc[0]
                 min_weight_coin = weights_df.index[-1]

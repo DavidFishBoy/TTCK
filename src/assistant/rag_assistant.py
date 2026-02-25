@@ -6,18 +6,26 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()
+
 class RAGCryptoAssistant:
     
     def __init__(self, api_key: Optional[str] = None, data_dir: str = "data/raw", 
-                 model: str = "gpt-4", predictions_dir: str = "results/predictions"):
+                 model: Optional[str] = None, predictions_dir: str = "results/predictions"):
         if api_key is None:
-            api_key = os.getenv("OPENAI_API_KEY")
-            if api_key is None:
-                raise ValueError(
-                    "Chưa có API key! Vui lòng:\n"
-                    "1. Truyền trực tiếp: RAGCryptoAssistant(api_key='sk-proj-xxx')\n"
-                    "2. Hoặc set biến môi trường: $env:OPENAI_API_KEY='sk-proj-xxx'"
-                )
+            api_key = os.getenv("GEMINI_API_KEY")
+        
+        if api_key is None:
+            raise ValueError(
+                "Chưa có API key! Vui lòng:\n"
+                "1. Thêm vào file .env: GEMINI_API_KEY=AIzaSy...\n"
+                "2. Hoặc truyền trực tiếp: RAGCryptoAssistant(api_key='AIzaSy...')\n"
+                "3. Lấy API key tại: https://aistudio.google.com"
+            )
+        
+        if model is None:
+            model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
         
         self.api_key = api_key
         self.data_dir = Path(data_dir)
@@ -27,12 +35,11 @@ class RAGCryptoAssistant:
         self.predictions_data = {}
         
         try:
-            import openai
-            self.openai = openai
-            self.openai.api_key = self.api_key
-            print(f"✓ Khởi tạo thành công với model: {model}")
+            from google import genai
+            self.client = genai.Client(api_key=self.api_key)
+            print(f"✓ Khởi tạo thành công với Gemini model: {model}")
         except ImportError:
-            raise ImportError("Cần cài đặt: pip install openai")
+            raise ImportError("Cần cài đặt: pip install google-genai")
     
     def load_historical_data(self):
         print("Đang load dữ liệu lịch sử...")
@@ -285,23 +292,16 @@ Trả lời bằng tiếng Việt, ngắn gọn, súc tích.
 """
         
         try:
-            response = self.openai.ChatCompletion.create(
+            response = self.client.models.generate_content(
                 model=self.model,
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": "Bạn là chuyên gia tư vấn đầu tư cryptocurrency chuyên nghiệp."
-                    },
-                    {
-                        "role": "user", 
-                        "content": prompt
-                    }
-                ],
-                temperature=0.7,
-                max_tokens=1500
+                contents=prompt,
+                config={
+                    "temperature": 0.7,
+                    "max_output_tokens": 1500,
+                }
             )
             
-            return response.choices[0].message.content
+            return response.text
             
         except Exception as e:
             return f"❌ Lỗi khi gọi API: {str(e)}\n\nVui lòng kiểm tra API key và kết nối mạng."
@@ -391,22 +391,27 @@ Nhiệm vụ:
 - Luôn nêu rõ mức độ rủi ro và nhắc nhở đây chỉ là dự đoán, không phải lời khuyên tài chính chắc chắn
 """
         
-        messages = [{"role": "system", "content": system_message}]
+        # Build conversation for Gemini
+        full_prompt = system_message + "\n\n"
         
         if conversation_history:
-            messages.extend(conversation_history)
+            for msg in conversation_history:
+                role = "User" if msg.get("role") == "user" else "Assistant"
+                full_prompt += f"{role}: {msg.get('content', '')}\n\n"
         
-        messages.append({"role": "user", "content": user_message})
+        full_prompt += f"User: {user_message}\n\nAssistant:"
         
         try:
-            response = self.openai.ChatCompletion.create(
+            response = self.client.models.generate_content(
                 model=self.model,
-                messages=messages,
-                temperature=0.8,
-                max_tokens=800
+                contents=full_prompt,
+                config={
+                    "temperature": 0.8,
+                    "max_output_tokens": 800,
+                }
             )
             
-            return response.choices[0].message.content
+            return response.text
             
         except Exception as e:
             return f"❌ Lỗi: {str(e)}"
@@ -470,17 +475,16 @@ Trả lời bằng tiếng Việt, ngắn gọn.
 """
         
         try:
-            response = self.openai.ChatCompletion.create(
+            response = self.client.models.generate_content(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": "Bạn là chuyên gia phân tích thị trường crypto."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.7,
-                max_tokens=1000
+                contents=prompt,
+                config={
+                    "temperature": 0.7,
+                    "max_output_tokens": 1000,
+                }
             )
             
-            return response.choices[0].message.content
+            return response.text
             
         except Exception as e:
             return f"❌ Lỗi: {str(e)}"

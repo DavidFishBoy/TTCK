@@ -1,27 +1,27 @@
 {
     "coin": "thesandbox",
-    "prediction_generated_at": "2025-12-21 13:32:16",
+    "prediction_generated_at": "2026-02-02 09:04:31",
     "forecast_horizon_days": 5,
     "predictions": [
         {
             "day": 1,
-            "expected_price": 0.11944316593408584
+            "expected_price": 0.10079957342147827
         },
         {
             "day": 2,
-            "expected_price": 0.11942815118807822
+            "expected_price": 0.10078124864703801
         },
         {
             "day": 3,
-            "expected_price": 0.11924685792974156
+            "expected_price": 0.10077468896970403
         },
         {
             "day": 4,
-            "expected_price": 0.11912800352873122
+            "expected_price": 0.1007705684149807
         },
         {
             "day": 5,
-            "expected_price": 0.11904570777949022
+            "expected_price": 0.10078539219521027
         }
     ],
     "explanation": "These predictions represent the model's best estimate of thesandbox closing prices for the next 5 days, based on historical patterns and recent data."
